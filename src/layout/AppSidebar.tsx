@@ -37,37 +37,37 @@ const navItems: NavItem[] = [
     name: "Customers",
     icon: <UserIcon />,
     subItems: [
-      {name: "Customers", path: "/customers", pro:false},
-      {name: "Pending Customers", path: "/pending", pro: false}
+      {name: "Customers", path: "/admin/customers", pro:false},
+      {name: "Pending Customers", path: "/admin/pending", pro: false}
     ]
   },
   {
     name: "Scheduler",
     icon: <CalenderIcon />,
     subItems: [
-      {name: "Create Plans", path: "/create-plans", pro: false},
-      {name: "View Plans", path: "/view-plans", pro: false}
+      {name: "Create Plans", path: "/admin/create-plans", pro: false},
+      {name: "View Plans", path: "/admin/view-plans", pro: false}
     ]
   },
   {
     icon: <PageIcon />,
     name: "Pages",
-    path: "/pages",
+    path: "/admin/pages",
   },
   {
     name: "Routes",
     icon: <BoxCubeIcon />,
-    path: "/routes"
+    path: "/admin/routes"
   },
   {
     name: "Meals",
     icon: <TableIcon />,
-    path: "/meals"
+    path: "/admin/meals"
   },
   {
     name: "Meal Options",
     icon: <TableIcon />,
-    path: "/meal-options"
+    path: "/admin/meal-options"
   }
 ];
 
