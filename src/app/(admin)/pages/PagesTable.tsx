@@ -1,0 +1,69 @@
+"use client";
+import React from "react";
+import { useGetAllPagesQuery } from "@/lib/services/pagesApi";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+
+export default function PagesTable() {
+  const { data: pages, error, isLoading } = useGetAllPagesQuery();
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error loading pages</div>;
+
+  return (
+    <>
+      <PageBreadcrumb pageTitle="Pages" />
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <div className="max-w-full overflow-x-auto">
+          <div className="min-w-[1102px]">
+              <Table>
+                <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+                  <TableRow>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Title
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Path
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Last Updated
+                    </TableCell>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                  {pages?.map((page) => (
+                    <TableRow key={page.path}>
+                      <TableCell className="px-5 py-4 text-start dark:text-white/90">
+                        {page.title}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-start dark:text-gray-400">
+                        {page.path}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-start dark:text-gray-400">
+                        {new Date(page.updatedAt).toLocaleDateString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

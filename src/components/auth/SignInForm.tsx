@@ -1,3 +1,4 @@
+// src/components/auth/SignInForm.tsx
 "use client";
 import Checkbox from "@/components/form/input/Checkbox";
 import Input from "@/components/form/input/InputField";
@@ -6,10 +7,22 @@ import Button from "@/components/ui/button/Button";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
 import React, { useState } from "react";
+import { useLoginMutation } from "@/lib/services/authApi";
+import { signIn } from "next-auth/react";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [login, { isLoading }] = useLoginMutation();
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    await signIn("credentials", { email, password, redirect: true, callbackUrl: "/" });
+  };
+
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full">
       <div className="w-full max-w-md sm:pt-10 mx-auto mb-5">
@@ -36,15 +49,14 @@ export default function SignInForm() {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200 dark:border-gray-800"></div>
               </div>
-              
             </div>
-            <form>
+            <form onSubmit={handleSubmit}>
               <div className="space-y-6">
                 <div>
                   <Label>
                     Email <span className="text-error-500">*</span>{" "}
                   </Label>
-                  <Input placeholder="info@gmail.com" type="email" />
+                  <Input name="email" placeholder="info@gmail.com" type="email" />
                 </div>
                 <div>
                   <Label>
@@ -52,6 +64,7 @@ export default function SignInForm() {
                   </Label>
                   <div className="relative">
                     <Input
+                      name="password"
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
                     />
@@ -68,12 +81,12 @@ export default function SignInForm() {
                   </div>
                 </div>
                 <div>
-                  <Button className="w-full" size="sm">
-                    Sign in
+                  <Button className="w-full" size="sm" disabled={isLoading}>
+                    {isLoading ? "Signing In..." : "Sign in"}
                   </Button>
                 </div>
               </div>
-            </form>           
+            </form>
           </div>
         </div>
       </div>
