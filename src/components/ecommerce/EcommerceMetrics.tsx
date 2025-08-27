@@ -2,8 +2,24 @@
 import React from "react";
 import Badge from "../ui/badge/Badge";
 import { ArrowDownIcon, ArrowUpIcon, BoxIconLine, GroupIcon } from "@/icons";
+import { DashboardStats } from "@/types/commerce-dashboard";
 
-export const EcommerceMetrics = () => {
+interface EcommerceMetricsProps {
+  stats: DashboardStats;
+}
+
+export const EcommerceMetrics: React.FC<EcommerceMetricsProps> = ({stats}) => {
+
+  const formatPercentage = (change: number) => {
+    const isPositive = change >= 0;
+    return (
+      <Badge color={isPositive ? "success" : "error"}>
+        {isPositive ? <ArrowUpIcon /> : <ArrowDownIcon />}
+        {Math.abs(change).toFixed(2)}%
+      </Badge>
+    );
+  };
+
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
       {/* <!-- Metric Item Start --> */}
@@ -18,13 +34,10 @@ export const EcommerceMetrics = () => {
               Customers
             </span>
             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              3,782
+              {stats.totalUsers}
             </h4>
           </div>
-          <Badge color="success">
-            <ArrowUpIcon />
-            11.01%
-          </Badge>
+          {formatPercentage(stats.totalUsersPercentageChange)}
         </div>
       </div>
       {/* <!-- Metric Item End --> */}
@@ -40,14 +53,11 @@ export const EcommerceMetrics = () => {
               Orders
             </span>
             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              5,359
+              {stats.newOrders}
             </h4>
           </div>
 
-          <Badge color="error">
-            <ArrowDownIcon className="text-error-500" />
-            9.05%
-          </Badge>
+          {formatPercentage(stats.newOrdersPercentageChange)}
         </div>
       </div>
       {/* <!-- Metric Item End --> */}

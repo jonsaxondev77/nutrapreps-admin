@@ -25,6 +25,7 @@ interface Meal {
     calories: string;
     allergies: string | null;
     supplement: number | null;
+    stripeProductId: string | null;
 }
 
 export default function MealsTable() {

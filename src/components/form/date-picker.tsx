@@ -13,6 +13,7 @@ type PropsType = {
   defaultDate?: DateOption;
   label?: string;
   placeholder?: string;
+  enableSundaysAndWednesdays?: boolean;
 };
 
 export default function DatePicker({
@@ -22,23 +23,35 @@ export default function DatePicker({
   label,
   defaultDate,
   placeholder,
+  enableSundaysAndWednesdays = false,
 }: PropsType) {
   useEffect(() => {
-    const flatPickr = flatpickr(`#${id}`, {
+
+    const options: flatpickr.Options.Options = {
       mode: mode || "single",
       static: true,
       monthSelectorType: "static",
       dateFormat: "Y-m-d",
       defaultDate,
       onChange,
-    });
+    };
+
+     if (enableSundaysAndWednesdays) {
+      options.disable = [
+        function(date) {
+          return (date.getDay() !== 0 && date.getDay() !== 3);
+        }
+      ];
+    }
+
+    const flatPickr = flatpickr(`#${id}`, options);
 
     return () => {
       if (!Array.isArray(flatPickr)) {
         flatPickr.destroy();
       }
     };
-  }, [mode, onChange, id, defaultDate]);
+  }, [mode, onChange, id, defaultDate, enableSundaysAndWednesdays]);
 
   return (
     <div>

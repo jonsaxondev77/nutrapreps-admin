@@ -5,7 +5,6 @@ export default withAuth(
   function middleware(req) {
    
     const token = req.nextauth.token;
-    console.log('Token:', token);
     
     if (!token) {
       return NextResponse.redirect(new URL('/signin', req.url));
@@ -31,6 +30,7 @@ export default withAuth(
 
 export const config = {
   matcher: [
+    "/admin/page.tsx",
     "/admin/:path*",
   ],
 };

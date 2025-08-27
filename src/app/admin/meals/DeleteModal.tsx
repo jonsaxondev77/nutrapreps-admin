@@ -7,6 +7,7 @@ import { useDeleteMealMutation } from "@/lib/services/mealsApi";
 interface Meal {
   id: number;
   name: string;
+  stripeProductId: string | null;
 }
 
 interface DeleteMealModalProps {

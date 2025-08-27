@@ -1,5 +1,7 @@
 // src/lib/services/routesApi.ts
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { getSession } from "next-auth/react";
+import { baseQueryWithRedirect } from "./baseQuery";
 
 interface Route {
   id: number;
@@ -17,7 +19,7 @@ interface PaginatedRoutes {
 
 export const routesApi = createApi({
   reducerPath: "routesApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:5265/" }), // Adjust if your backend URL is different
+  baseQuery: baseQueryWithRedirect, // Adjust if your backend URL is different
   endpoints: (builder) => ({
     getAllRoutes: builder.query<PaginatedRoutes, { pageNumber: number; pageSize: number }>({
       query: ({ pageNumber, pageSize }) => `deliveryroutes?pageNumber=${pageNumber}&pageSize=${pageSize}`,
@@ -39,14 +41,14 @@ export const routesApi = createApi({
       }),
       invalidatesTags: ["Routes"]
     }),
-    deleteRoute: builder.mutation<{id: number}, number>({
+    deleteRoute: builder.mutation<{ id: number }, number>({
       query: (id) => ({
         url: `deliveryroutes/${id}`,
         method: "DELETE"
       }),
       invalidatesTags: ["Routes"]
     }),
-    
+
   }),
   tagTypes: ["Routes"],
 });

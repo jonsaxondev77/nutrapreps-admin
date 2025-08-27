@@ -1,8 +1,9 @@
+// src/app/admin/routes/RouteModal.tsx
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
-import Input from "@/components/form/input/InputField";
+import InputFieldCustom from "@/components/form/input/InputFieldCustom";
 import Label from "@/components/form/Label";
 import { useUpdateRouteMutation, useCreateRouteMutation } from "@/lib/services/routesApi";
 import { routeSchema, type RouteFormData } from "@/lib/validators/routeValidator";
@@ -33,48 +34,28 @@ export default function RouteModal({
 }: RouteModalProps) {
   const [updateRoute, { isLoading: isUpdating }] = useUpdateRouteMutation();
   const [createRoute, { isLoading: isCreating }] = useCreateRouteMutation();
-  const [previousRouteId, setPreviousRouteId] = useState<number | null>(null);
-
   const isLoading = isUpdating || isCreating;
 
   const {
-    setValue,
-    watch,
-    trigger,
+    register,
     handleSubmit,
     formState: { errors },
     reset,
   } = useForm<RouteFormData>({
     resolver: zodResolver(routeSchema),
-    mode: "onChange",
-    defaultValues: {
-      name: "",
-      color: "",
-      textColor: "",
-      deliveryFee: 0,
-      depotId: "",
-    }
   });
-
-  const formValues = watch();
 
   useEffect(() => {
     if (isOpen) {
       if (mode === 'edit' && route) {
-        // Check if we're opening a different route than the previous one
-        if (route.id !== previousRouteId) {
-          const newDefaultValues = {
-            name: route.name || "",
-            color: route.color || "",
-            textColor: route.textColor || "",
-            deliveryFee: route.deliveryFee,
-            depotId: route.depotId || "",
-          };
-          reset(newDefaultValues);
-          setPreviousRouteId(route.id);
-        }
-      } else if (mode === 'create') {
-        // Reset to empty form for create mode
+        reset({
+          name: route.name || "",
+          color: route.color || "",
+          textColor: route.textColor || "",
+          deliveryFee: route.deliveryFee,
+          depotId: route.depotId || "",
+        });
+      } else {
         reset({
           name: "",
           color: "",
@@ -82,25 +63,9 @@ export default function RouteModal({
           deliveryFee: 0,
           depotId: "",
         });
-        setPreviousRouteId(null);
       }
-    } else {
-      // Reset when modal closes
-      reset({
-        name: "",
-        color: "",
-        textColor: "",
-        deliveryFee: 0,
-        depotId: "",
-      });
-      setPreviousRouteId(null);
     }
-  }, [route, isOpen, reset, previousRouteId, mode]);
-
-  const handleInputChange = async (field: keyof RouteFormData, value: string | number) => {
-    setValue(field, value);
-    await trigger(field);
-  };
+  }, [route, isOpen, reset, mode]);
 
   const onSubmit = async (data: RouteFormData) => {
     try {
@@ -125,20 +90,8 @@ export default function RouteModal({
     }
   };
 
-  const handleClose = () => {
-    reset({
-      name: "",
-      color: "",
-      textColor: "",
-      deliveryFee: 0,
-      depotId: "",
-    });
-    setPreviousRouteId(null);
-    onClose();
-  };
-
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} className="max-w-[584px] p-5 lg:p-10">
+    <Modal isOpen={isOpen} onClose={onClose} className="max-w-[584px] p-5 lg:p-10">
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <h4 className="mb-6 text-lg font-medium text-gray-800 dark:text-white/90">
           {mode === 'edit' ? 'Edit Route' : 'Create New Route'}
@@ -146,24 +99,20 @@ export default function RouteModal({
         <div className="space-y-6">
           <div>
             <Label htmlFor="name">Name</Label>
-            <Input
+            <InputFieldCustom
               id="name"
               type="text"
-              defaultValue={formValues.name || ""}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              onBlur={() => trigger("name")}
+              {...register("name")}
               error={!!errors.name}
               hint={errors.name?.message}
             />
           </div>
           <div>
             <Label htmlFor="color">Color</Label>
-            <Input
+            <InputFieldCustom
               id="color"
               type="text"
-              defaultValue={formValues.color || ""}
-              onChange={(e) => handleInputChange("color", e.target.value)}
-              onBlur={() => trigger("color")}
+              {...register("color")}
               placeholder="#FF0000"
               error={!!errors.color}
               hint={errors.color?.message || "Enter a hex color code (e.g., #FF0000)"}
@@ -171,12 +120,10 @@ export default function RouteModal({
           </div>
           <div>
             <Label htmlFor="textColor">Text Color</Label>
-            <Input
+            <InputFieldCustom
               id="textColor"
               type="text"
-              defaultValue={formValues.textColor || ""}
-              onChange={(e) => handleInputChange("textColor", e.target.value)}
-              onBlur={() => trigger("textColor")}
+              {...register("textColor")}
               placeholder="#FFFFFF"
               error={!!errors.textColor}
               hint={errors.textColor?.message || "Enter a hex color code (e.g., #FFFFFF)"}
@@ -184,12 +131,10 @@ export default function RouteModal({
           </div>
           <div>
             <Label htmlFor="deliveryFee">Delivery Fee</Label>
-            <Input
+            <InputFieldCustom
               id="deliveryFee"
               type="number"
-              defaultValue={formValues.deliveryFee || 0}
-              onChange={(e) => handleInputChange("deliveryFee", parseFloat(e.target.value) || 0)}
-              onBlur={() => trigger("deliveryFee")}
+              {...register("deliveryFee", { valueAsNumber: true })}
               min={0}
               step={0.01}
               error={!!errors.deliveryFee}
@@ -198,19 +143,17 @@ export default function RouteModal({
           </div>
           <div>
             <Label htmlFor="depotId">Depot ID</Label>
-            <Input
+            <InputFieldCustom
               id="depotId"
               type="text"
-              defaultValue={formValues.depotId || ""}
-              onChange={(e) => handleInputChange("depotId", e.target.value)}
-              onBlur={() => trigger("depotId")}
+              {...register("depotId")}
               error={!!errors.depotId}
               hint={errors.depotId?.message}
             />
           </div>
         </div>
         <div className="flex items-center justify-end w-full gap-3 mt-6">
-          <Button size="sm" variant="outline" onClick={handleClose}>
+          <Button size="sm" variant="outline" onClick={onClose}>
             Cancel
           </Button>
           <Button 

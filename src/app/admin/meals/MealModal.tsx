@@ -1,14 +1,15 @@
+// src/app/admin/meals/MealModal.tsx
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
-import Input from "@/components/form/input/InputField";
+import InputFieldCustom from "@/components/form/input/InputFieldCustom";
 import Label from "@/components/form/Label";
 import { useCreateMealMutation, useUpdateMealMutation } from "@/lib/services/mealsApi";
 import { mealSchema, type MealFormData } from "@/lib/validators/mealValidator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import TextArea from "@/components/form/input/TextArea";
+import TextAreaCustom from "@/components/form/input/TextAreaCustom";
 
 interface Meal {
   id: number;
@@ -20,6 +21,7 @@ interface Meal {
   calories: string;
   allergies: string | null;
   supplement: number | null;
+  stripeProductId?: string;
 }
 
 interface MealModalProps {
@@ -40,25 +42,26 @@ export default function MealModal({
   const isLoading = isUpdating || isCreating;
 
   const {
-    setValue,
-    watch,
-    trigger,
+    register,
     handleSubmit,
     formState: { errors },
     reset,
   } = useForm<MealFormData>({
     resolver: zodResolver(mealSchema),
-    mode: "onChange",
   });
-
-  const formValues = watch();
 
   useEffect(() => {
     if (isOpen) {
       if (mode === 'edit' && meal) {
         reset({
-            ...meal,
-            supplement: meal.supplement || 0
+          name: meal.name || "",
+          description: meal.description || "",
+          calories: meal.calories || "",
+          carbs: meal.carbs || "",
+          protein: meal.protein || "",
+          fat: meal.fat || "",
+          allergies: meal.allergies || "",
+          supplement: meal.supplement || 0,
         });
       } else {
         reset({
@@ -75,17 +78,47 @@ export default function MealModal({
     }
   }, [meal, isOpen, reset, mode]);
 
-  const handleInputChange = (field: keyof MealFormData, value: string | number) => {
-    setValue(field, value as any);
-    trigger(field);
-  };
-
   const onSubmit = async (data: MealFormData) => {
     try {
       if (mode === 'edit' && meal) {
-        await updateMeal({ id: meal.id, ...data }).unwrap();
-      } else {
-        await createMeal(data).unwrap();
+        let updatedMealData = { ...meal, ...data };
+
+        if (data.supplement && data.supplement > 0 && !meal.stripeProductId) {
+          const response = await fetch('/api/stripe/products', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ meal: data }),
+          });
+          const { product } = await response.json();
+          updatedMealData.stripeProductId = product.id;
+        } else if (meal.stripeProductId) {
+          await fetch('/api/stripe/products', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ meal: { ...data, stripeProductId: meal.stripeProductId } }),
+          });
+        }
+
+        await updateMeal(updatedMealData).unwrap();
+
+      } else { // Create mode
+        let stripeProductId = null;
+        if (data.supplement && data.supplement > 0) {
+            const response = await fetch('/api/stripe/products', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ meal: data }),
+            });
+            const { product } = await response.json();
+            stripeProductId = product.id;
+        }
+        await createMeal({ ...data, stripeProductId }).unwrap();
       }
       onClose();
     } catch (error) {
@@ -102,78 +135,80 @@ export default function MealModal({
         <div className="space-y-6">
           <div>
             <Label htmlFor="name">Name</Label>
-            <Input
+            <InputFieldCustom
               id="name"
               type="text"
-              defaultValue={formValues.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              onBlur={() => trigger("name")}
+              {...register("name")}
               error={!!errors.name}
               hint={errors.name?.message}
             />
           </div>
           <div>
             <Label htmlFor="description">Description</Label>
-            <TextArea
-              value={formValues.description || ""}
-              onChange={(value) => handleInputChange("description", value)}
+            <TextAreaCustom
+              id="description"
+              {...register("description")}
               rows={3}
+              error={!!errors.description}
+              hint={errors.description?.message}
             />
           </div>
           <div>
             <Label htmlFor="calories">Calories</Label>
-            <Input
+            <InputFieldCustom
               id="calories"
               type="text"
-              defaultValue={formValues.calories}
-              onChange={(e) => handleInputChange("calories", e.target.value)}
-              onBlur={() => trigger("calories")}
+              {...register("calories")}
               error={!!errors.calories}
               hint={errors.calories?.message}
             />
           </div>
           <div>
             <Label htmlFor="carbs">Carbs</Label>
-            <Input
+            <InputFieldCustom
               id="carbs"
               type="text"
-              defaultValue={formValues.carbs}
-              onChange={(e) => handleInputChange("carbs", e.target.value)}
-              onBlur={() => trigger("carbs")}
+              {...register("carbs")}
               error={!!errors.carbs}
               hint={errors.carbs?.message}
             />
           </div>
           <div>
             <Label htmlFor="protein">Protein</Label>
-            <Input
+            <InputFieldCustom
               id="protein"
               type="text"
-              defaultValue={formValues.protein}
-              onChange={(e) => handleInputChange("protein", e.target.value)}
-              onBlur={() => trigger("protein")}
+              {...register("protein")}
               error={!!errors.protein}
               hint={errors.protein?.message}
             />
           </div>
           <div>
             <Label htmlFor="fat">Fat</Label>
-            <Input
+            <InputFieldCustom
               id="fat"
               type="text"
-              defaultValue={formValues.fat}
-              onChange={(e) => handleInputChange("fat", e.target.value)}
-              onBlur={() => trigger("fat")}
+              {...register("fat")}
               error={!!errors.fat}
               hint={errors.fat?.message}
             />
           </div>
+          <div>
+            <Label htmlFor="supplement">Supplement Price</Label>
+            <InputFieldCustom
+              id="supplement"
+              type="number"
+              {...register("supplement", { valueAsNumber: true })}
+              error={!!errors.supplement}
+              hint={errors.supplement?.message}
+            />
+          </div>
         </div>
         <div className="flex items-center justify-end w-full gap-3 mt-6">
-          <Button size="sm" variant="outline" onClick={onClose}>
+          <Button size="sm" variant="outline" type="button" onClick={onClose}>
             Cancel
           </Button>
-          <Button size="sm" disabled={isLoading}>
+          <Button size="sm" disabled={isLoading} type="submit">
             {isLoading ? (mode === 'edit' ? "Saving..." : "Creating...") : (mode === 'edit' ? "Save Changes" : "Create Meal")}
           </Button>
         </div>

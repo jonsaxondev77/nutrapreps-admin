@@ -55,6 +55,11 @@ const navItems: NavItem[] = [
     path: "/admin/pages",
   },
   {
+    name: "Packages",
+    icon: <BoxCubeIcon/>,
+    path: "/admin/packages"
+  },
+  {
     name: "Routes",
     icon: <BoxCubeIcon />,
     path: "/admin/routes"
@@ -68,6 +73,11 @@ const navItems: NavItem[] = [
     name: "Meal Options",
     icon: <TableIcon />,
     path: "/admin/meal-options"
+  },
+  {
+    name: "Extras",
+    icon: <TableIcon />,
+    path: "/admin/extras"
   }
 ];
 
@@ -292,10 +302,10 @@ const AppSidebar: React.FC = () => {
         <Link href="/">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
-              <span className="text-2xl">Nutrapreps Admin</span>
+              <span className="text-2xl dark:text-white">Nutrapreps Admin</span>
             </>
           ) : (
-            <span className="text-lg">NP</span>
+            <span className="text-lg dark:text-white">NP</span>
           )}
         </Link>
       </div>
