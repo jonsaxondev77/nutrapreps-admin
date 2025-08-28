@@ -84,7 +84,7 @@ const AppHeader: React.FC = () => {
           </button>
 
           <Link href="/" className="lg:hidden">
-              Nutrapreps Admin
+              <span className="text-blue-600 dark:text-white">Nutrapreps Admin</span>
           </Link>
 
           <button
