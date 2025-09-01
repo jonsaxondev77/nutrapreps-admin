@@ -9,9 +9,11 @@ import { mealSchema, type MealFormData } from "@/lib/validators/mealValidator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import TextAreaCustom from "@/components/form/input/TextAreaCustom";
-import { Image, X } from 'lucide-react';
+import Image from "next/image";
+import { X } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { FileSelector } from '@/components/file-manager/FileSelector'; // <-- Import the new component
+import { FileSelector } from '@/components/file-manager/FileSelector';
+import { Image as ImageIcon } from 'lucide-react';
 
 interface Meal {
     id: number;
@@ -93,13 +95,13 @@ export default function MealModal({
             return;
         }
 
-        const PULL_ZONE_URL = `https://${process.env.NEXT_PUBLIC_BUNNY_CDN_PULL_ZONE_HOSTNAME}`;
+        const PULL_ZONE_URL = process.env.NEXT_PUBLIC_BUNNY_CDN_PULL_ZONE_HOSTNAME;
         if (!PULL_ZONE_URL) {
             toast.error("BunnyCDN pull zone URL is not configured.");
             return;
         }
 
-        const fileUrl = `${PULL_ZONE_URL}/${file.FullPath}`;
+        const fileUrl = `https://${PULL_ZONE_URL}/${file.FullPath}`;
         setValue('imageUrl', fileUrl, { shouldDirty: true });
         setIsFileModalOpen(false);
     };
@@ -112,7 +114,7 @@ export default function MealModal({
                     const response = await fetch('/api/stripe/products', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ meal: data }),
+                        body: JSON.stringify({ productData: data }),
                     });
                     const { product } = await response.json();
                     updatedMealData.stripeProductId = product.id;
@@ -120,7 +122,7 @@ export default function MealModal({
                     await fetch('/api/stripe/products', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ meal: { ...data, stripeProductId: meal.stripeProductId } }),
+                        body: JSON.stringify({ productData: { ...data, stripeProductId: meal.stripeProductId } }),
                     });
                 }
                 await updateMeal(updatedMealData).unwrap();
@@ -130,7 +132,7 @@ export default function MealModal({
                     const response = await fetch('/api/stripe/products', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ meal: data }),
+                        body: JSON.stringify({ productData: data }),
                     });
                     const { product } = await response.json();
                     stripeProductId = product.id;
@@ -150,8 +152,8 @@ export default function MealModal({
                     <h4 className="mb-6 text-lg font-medium text-gray-800 dark:text-white/90">
                         {mode === 'edit' ? 'Edit Meal' : 'Create New Meal'}
                     </h4>
-                    <div className="space-y-6">
-                        <div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="md:col-span-2">
                             <Label htmlFor="name">Name</Label>
                             <InputFieldCustom
                                 id="name"
@@ -161,7 +163,7 @@ export default function MealModal({
                                 hint={errors.name?.message}
                             />
                         </div>
-                        <div>
+                        <div className="md:col-span-2">
                             <Label htmlFor="description">Description</Label>
                             <TextAreaCustom
                                 id="description"
@@ -175,7 +177,7 @@ export default function MealModal({
                             name="imageUrl"
                             control={control}
                             render={({ field }) => (
-                                <div>
+                                <div className="md:col-span-2">
                                     <div className="flex items-end gap-2">
                                         <div className="flex-1">
                                             <InputFieldCustom
@@ -194,16 +196,22 @@ export default function MealModal({
                                             disabled={isLoading}
                                             className="h-10 px-4 py-2"
                                         >
-                                            <Image size={20} className="mr-2" />
+                                            <ImageIcon size={20} className="mr-2" />
                                             Browse
                                         </Button>
                                     </div>
                                     {field.value && (
-                                        <div className="relative mt-2 p-2 border rounded-lg max-w-sm">
-                                            <img src={field.value} alt="Preview" className="w-full h-auto object-cover rounded" />
+                                        <div className="relative mt-2 p-2 border rounded-lg w-[300px] h-[300px] overflow-hidden">
+                                            <Image 
+                                                src={field.value} 
+                                                alt="Preview" 
+                                                width={300} 
+                                                height={300}
+                                                className="object-cover w-full h-full rounded" 
+                                            />
                                             <button
                                                 onClick={() => setValue('imageUrl', '', { shouldDirty: true })}
-                                                className="absolute top-0 right-0 p-1 text-red-500 bg-white rounded-full translate-x-1/2 -translate-y-1/2"
+                                                className="absolute top-5 right-5 p-1 text-red-500 bg-white rounded-full translate-x-1/2 -translate-y-1/2"
                                                 aria-label="Remove image"
                                             >
                                                 <X size={16} />
@@ -253,7 +261,7 @@ export default function MealModal({
                                 hint={errors.fat?.message}
                             />
                         </div>
-                        <div>
+                        <div className="md:col-span-2">
                             <Label htmlFor="supplement">Supplement Price</Label>
                             <InputFieldCustom
                                 id="supplement"
@@ -265,10 +273,10 @@ export default function MealModal({
                         </div>
                     </div>
                     <div className="flex items-center justify-end w-full gap-3 mt-6">
-                        <Button size="sm" variant="outline" type="button" onClick={onClose}>
+                        <Button size="sm" variant="outline" onClick={onClose}>
                             Cancel
                         </Button>
-                        <Button size="sm" disabled={isLoading} type="submit">
+                        <Button size="sm" disabled={isLoading}>
                             {isLoading ? (mode === 'edit' ? "Saving..." : "Creating...") : (mode === 'edit' ? "Save Changes" : "Create Meal")}
                         </Button>
                     </div>
@@ -280,7 +288,6 @@ export default function MealModal({
                 onClose={() => setIsFileModalOpen(false)}
                 className="max-w-4xl h-[80vh] flex flex-col"
             >
-                {/* Use the new FileSelector component here */}
                 <FileSelector onClose={() => setIsFileModalOpen(false)} onFileSelect={handleFileSelect} />
             </Modal>
         </>
