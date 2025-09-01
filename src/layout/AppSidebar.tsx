@@ -13,6 +13,9 @@ import {
   TableIcon,
   UserIcon,
 } from "../icons/index";
+import { FileManager } from "@/components/file-manager/FileManager";
+import FileManagerPage from "@/app/admin/file-manager/page";
+import { ImageIcon } from "lucide-react";
 
 type NavItem = {
   name: string;
@@ -72,6 +75,11 @@ const navItems: NavItem[] = [
     name: "Extras",
     icon: <TableIcon />,
     path: "/admin/extras"
+  },
+  {
+    name: "Image Manager",
+    icon: <ImageIcon/>,
+    path: "/admin/file-manager"
   }
 ];
 
