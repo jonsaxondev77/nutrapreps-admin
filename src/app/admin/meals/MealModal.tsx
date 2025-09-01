@@ -1,6 +1,5 @@
-// src/app/admin/meals/MealModal.tsx
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
 import InputFieldCustom from "@/components/form/input/InputFieldCustom";
@@ -8,211 +7,282 @@ import Label from "@/components/form/Label";
 import { useCreateMealMutation, useUpdateMealMutation } from "@/lib/services/mealsApi";
 import { mealSchema, type MealFormData } from "@/lib/validators/mealValidator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import TextAreaCustom from "@/components/form/input/TextAreaCustom";
+import { Image, X } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { FileSelector } from '@/components/file-manager/FileSelector'; // <-- Import the new component
 
 interface Meal {
-  id: number;
-  name: string;
-  description: string;
-  fat: string;
-  carbs: string;
-  protein: string;
-  calories: string;
-  allergies: string | null;
-  supplement: number | null;
-  stripeProductId?: string;
+    id: number;
+    name: string;
+    description: string | null;
+    fat: string;
+    carbs: string;
+    protein: string;
+    calories: string;
+    allergies: string | null;
+    supplement: number | null;
+    stripeProductId?: string;
+    imageUrl?: string | null;
 }
 
 interface MealModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  meal: Meal | null;
-  mode: 'edit' | 'create';
+    isOpen: boolean;
+    onClose: () => void;
+    meal: Meal | null;
+    mode: 'edit' | 'create';
 }
 
 export default function MealModal({
-  isOpen,
-  onClose,
-  meal,
-  mode = 'edit',
+    isOpen,
+    onClose,
+    meal,
+    mode = 'edit',
 }: MealModalProps) {
-  const [updateMeal, { isLoading: isUpdating }] = useUpdateMealMutation();
-  const [createMeal, { isLoading: isCreating }] = useCreateMealMutation();
-  const isLoading = isUpdating || isCreating;
+    const [updateMeal, { isLoading: isUpdating }] = useUpdateMealMutation();
+    const [createMeal, { isLoading: isCreating }] = useCreateMealMutation();
+    const isLoading = isUpdating || isCreating;
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<MealFormData>({
-    resolver: zodResolver(mealSchema),
-  });
+    const [isFileModalOpen, setIsFileModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      if (mode === 'edit' && meal) {
-        reset({
-          name: meal.name || "",
-          description: meal.description || "",
-          calories: meal.calories || "",
-          carbs: meal.carbs || "",
-          protein: meal.protein || "",
-          fat: meal.fat || "",
-          allergies: meal.allergies || "",
-          supplement: meal.supplement || 0,
-        });
-      } else {
-        reset({
-          name: "",
-          description: "",
-          calories: "",
-          carbs: "",
-          protein: "",
-          fat: "",
-          allergies: "",
-          supplement: 0,
-        });
-      }
-    }
-  }, [meal, isOpen, reset, mode]);
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+        reset,
+        control,
+        setValue
+    } = useForm<MealFormData>({
+        resolver: zodResolver(mealSchema),
+    });
 
-  const onSubmit = async (data: MealFormData) => {
-    try {
-      if (mode === 'edit' && meal) {
-        let updatedMealData = { ...meal, ...data };
+    useEffect(() => {
+        if (isOpen) {
+            if (mode === 'edit' && meal) {
+                reset({
+                    name: meal.name || "",
+                    description: meal.description || "",
+                    calories: meal.calories || "",
+                    carbs: meal.carbs || "",
+                    protein: meal.protein || "",
+                    fat: meal.fat || "",
+                    allergies: meal.allergies || "",
+                    supplement: meal.supplement || 0,
+                    imageUrl: meal.imageUrl || "",
+                });
+            } else {
+                reset({
+                    name: "",
+                    description: "",
+                    calories: "",
+                    carbs: "",
+                    protein: "",
+                    fat: "",
+                    allergies: "",
+                    supplement: 0,
+                    imageUrl: "",
+                });
+            }
+        }
+    }, [meal, isOpen, reset, mode]);
 
-        if (data.supplement && data.supplement > 0 && !meal.stripeProductId) {
-          const response = await fetch('/api/stripe/products', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ meal: data }),
-          });
-          const { product } = await response.json();
-          updatedMealData.stripeProductId = product.id;
-        } else if (meal.stripeProductId) {
-          await fetch('/api/stripe/products', {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ meal: { ...data, stripeProductId: meal.stripeProductId } }),
-          });
+    const handleFileSelect = (file: { FullPath: string; IsDirectory: boolean }) => {
+        if (file.IsDirectory) {
+            toast.error("Please select a file, not a directory.");
+            return;
         }
 
-        await updateMeal(updatedMealData).unwrap();
-
-      } else { // Create mode
-        let stripeProductId = null;
-        if (data.supplement && data.supplement > 0) {
-            const response = await fetch('/api/stripe/products', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ meal: data }),
-            });
-            const { product } = await response.json();
-            stripeProductId = product.id;
+        const PULL_ZONE_URL = `https://${process.env.NEXT_PUBLIC_BUNNY_CDN_PULL_ZONE_HOSTNAME}`;
+        if (!PULL_ZONE_URL) {
+            toast.error("BunnyCDN pull zone URL is not configured.");
+            return;
         }
-        await createMeal({ ...data, stripeProductId }).unwrap();
-      }
-      onClose();
-    } catch (error) {
-      console.error(`Failed to ${mode} meal:`, error);
-    }
-  };
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} className="max-w-[584px] p-5 lg:p-10">
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <h4 className="mb-6 text-lg font-medium text-gray-800 dark:text-white/90">
-          {mode === 'edit' ? 'Edit Meal' : 'Create New Meal'}
-        </h4>
-        <div className="space-y-6">
-          <div>
-            <Label htmlFor="name">Name</Label>
-            <InputFieldCustom
-              id="name"
-              type="text"
-              {...register("name")}
-              error={!!errors.name}
-              hint={errors.name?.message}
-            />
-          </div>
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <TextAreaCustom
-              id="description"
-              {...register("description")}
-              rows={3}
-              error={!!errors.description}
-              hint={errors.description?.message}
-            />
-          </div>
-          <div>
-            <Label htmlFor="calories">Calories</Label>
-            <InputFieldCustom
-              id="calories"
-              type="text"
-              {...register("calories")}
-              error={!!errors.calories}
-              hint={errors.calories?.message}
-            />
-          </div>
-          <div>
-            <Label htmlFor="carbs">Carbs</Label>
-            <InputFieldCustom
-              id="carbs"
-              type="text"
-              {...register("carbs")}
-              error={!!errors.carbs}
-              hint={errors.carbs?.message}
-            />
-          </div>
-          <div>
-            <Label htmlFor="protein">Protein</Label>
-            <InputFieldCustom
-              id="protein"
-              type="text"
-              {...register("protein")}
-              error={!!errors.protein}
-              hint={errors.protein?.message}
-            />
-          </div>
-          <div>
-            <Label htmlFor="fat">Fat</Label>
-            <InputFieldCustom
-              id="fat"
-              type="text"
-              {...register("fat")}
-              error={!!errors.fat}
-              hint={errors.fat?.message}
-            />
-          </div>
-          <div>
-            <Label htmlFor="supplement">Supplement Price</Label>
-            <InputFieldCustom
-              id="supplement"
-              type="number"
-              {...register("supplement", { valueAsNumber: true })}
-              error={!!errors.supplement}
-              hint={errors.supplement?.message}
-            />
-          </div>
-        </div>
-        <div className="flex items-center justify-end w-full gap-3 mt-6">
-          <Button size="sm" variant="outline" type="button" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button size="sm" disabled={isLoading} type="submit">
-            {isLoading ? (mode === 'edit' ? "Saving..." : "Creating...") : (mode === 'edit' ? "Save Changes" : "Create Meal")}
-          </Button>
-        </div>
-      </form>
-    </Modal>
-  );
+        const fileUrl = `${PULL_ZONE_URL}/${file.FullPath}`;
+        setValue('imageUrl', fileUrl, { shouldDirty: true });
+        setIsFileModalOpen(false);
+    };
+
+    const onSubmit = async (data: MealFormData) => {
+        try {
+            if (mode === 'edit' && meal) {
+                let updatedMealData = { ...meal, ...data };
+                if (data.supplement && data.supplement > 0 && !meal.stripeProductId) {
+                    const response = await fetch('/api/stripe/products', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ meal: data }),
+                    });
+                    const { product } = await response.json();
+                    updatedMealData.stripeProductId = product.id;
+                } else if (meal.stripeProductId) {
+                    await fetch('/api/stripe/products', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ meal: { ...data, stripeProductId: meal.stripeProductId } }),
+                    });
+                }
+                await updateMeal(updatedMealData).unwrap();
+            } else { // Create mode
+                let stripeProductId = null;
+                if (data.supplement && data.supplement > 0) {
+                    const response = await fetch('/api/stripe/products', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ meal: data }),
+                    });
+                    const { product } = await response.json();
+                    stripeProductId = product.id;
+                }
+                await createMeal({ ...data, stripeProductId }).unwrap();
+            }
+            onClose();
+        } catch (error) {
+            console.error(`Failed to ${mode} meal:`, error);
+        }
+    };
+
+    return (
+        <>
+            <Modal isOpen={isOpen && !isFileModalOpen} onClose={onClose} className="max-w-[584px] p-5 lg:p-10">
+                <form onSubmit={handleSubmit(onSubmit)} noValidate>
+                    <h4 className="mb-6 text-lg font-medium text-gray-800 dark:text-white/90">
+                        {mode === 'edit' ? 'Edit Meal' : 'Create New Meal'}
+                    </h4>
+                    <div className="space-y-6">
+                        <div>
+                            <Label htmlFor="name">Name</Label>
+                            <InputFieldCustom
+                                id="name"
+                                type="text"
+                                {...register("name")}
+                                error={!!errors.name}
+                                hint={errors.name?.message}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="description">Description</Label>
+                            <TextAreaCustom
+                                id="description"
+                                {...register("description")}
+                                rows={3}
+                                error={!!errors.description}
+                                hint={errors.description?.message}
+                            />
+                        </div>
+                        <Controller
+                            name="imageUrl"
+                            control={control}
+                            render={({ field }) => (
+                                <div>
+                                    <div className="flex items-end gap-2">
+                                        <div className="flex-1">
+                                            <InputFieldCustom
+                                                id="image-url"
+                                                label="Meal Image URL"
+                                                type="text"
+                                                value={field.value || ""}
+                                                onChange={field.onChange}
+                                                placeholder="Image URL"
+                                                disabled={isLoading}
+                                            />
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            onClick={() => setIsFileModalOpen(true)}
+                                            disabled={isLoading}
+                                            className="h-10 px-4 py-2"
+                                        >
+                                            <Image size={20} className="mr-2" />
+                                            Browse
+                                        </Button>
+                                    </div>
+                                    {field.value && (
+                                        <div className="relative mt-2 p-2 border rounded-lg max-w-sm">
+                                            <img src={field.value} alt="Preview" className="w-full h-auto object-cover rounded" />
+                                            <button
+                                                onClick={() => setValue('imageUrl', '', { shouldDirty: true })}
+                                                className="absolute top-0 right-0 p-1 text-red-500 bg-white rounded-full translate-x-1/2 -translate-y-1/2"
+                                                aria-label="Remove image"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        />
+                        <div>
+                            <Label htmlFor="calories">Calories</Label>
+                            <InputFieldCustom
+                                id="calories"
+                                type="text"
+                                {...register("calories")}
+                                error={!!errors.calories}
+                                hint={errors.calories?.message}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="carbs">Carbs</Label>
+                            <InputFieldCustom
+                                id="carbs"
+                                type="text"
+                                {...register("carbs")}
+                                error={!!errors.carbs}
+                                hint={errors.carbs?.message}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="protein">Protein</Label>
+                            <InputFieldCustom
+                                id="protein"
+                                type="text"
+                                {...register("protein")}
+                                error={!!errors.protein}
+                                hint={errors.protein?.message}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="fat">Fat</Label>
+                            <InputFieldCustom
+                                id="fat"
+                                type="text"
+                                {...register("fat")}
+                                error={!!errors.fat}
+                                hint={errors.fat?.message}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="supplement">Supplement Price</Label>
+                            <InputFieldCustom
+                                id="supplement"
+                                type="number"
+                                {...register("supplement", { valueAsNumber: true })}
+                                error={!!errors.supplement}
+                                hint={errors.supplement?.message}
+                            />
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-end w-full gap-3 mt-6">
+                        <Button size="sm" variant="outline" type="button" onClick={onClose}>
+                            Cancel
+                        </Button>
+                        <Button size="sm" disabled={isLoading} type="submit">
+                            {isLoading ? (mode === 'edit' ? "Saving..." : "Creating...") : (mode === 'edit' ? "Save Changes" : "Create Meal")}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
+
+            <Modal
+                isOpen={isFileModalOpen}
+                onClose={() => setIsFileModalOpen(false)}
+                className="max-w-4xl h-[80vh] flex flex-col"
+            >
+                {/* Use the new FileSelector component here */}
+                <FileSelector onClose={() => setIsFileModalOpen(false)} onFileSelect={handleFileSelect} />
+            </Modal>
+        </>
+    );
 }

@@ -20,6 +20,7 @@ interface Meal {
   allergies: string | null;
   supplement: number | null;
   stripeProductId?: string | null;
+  imageUrl?: string | null;
 }
 
 interface PaginatedMeals {
