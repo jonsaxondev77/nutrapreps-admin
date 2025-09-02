@@ -1,10 +1,7 @@
 "use client";
 import { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
-import { Dropdown } from "../ui/dropdown/Dropdown";
-import { MoreDotIcon } from "@/icons";
 import { useState } from "react";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { DashboardStats } from "@/types/commerce-dashboard";
 
 // Dynamically import the ReactApexChart component
@@ -94,31 +91,6 @@ export default function MonthlyTarget({stats} : MonthlyTargetProps) {
               Target you’ve set for each month
             </p>
           </div>
-          <div className="relative inline-block">
-            <button onClick={toggleDropdown} className="dropdown-toggle">
-              <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
-            </button>
-            <Dropdown
-              isOpen={isOpen}
-              onClose={closeDropdown}
-              className="w-40 p-2"
-            >
-              <DropdownItem
-                tag="a"
-                onItemClick={closeDropdown}
-                className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-              >
-                View More
-              </DropdownItem>
-              <DropdownItem
-                tag="a"
-                onItemClick={closeDropdown}
-                className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-              >
-                Delete
-              </DropdownItem>
-            </Dropdown>
-          </div>
         </div>
         <div className="relative ">
           <div className="max-h-[330px]">
@@ -135,7 +107,7 @@ export default function MonthlyTarget({stats} : MonthlyTargetProps) {
           </span>
         </div>
         <p className="mx-auto mt-10 w-full max-w-[380px] text-center text-sm text-gray-500 sm:text-base">
-          You earn ${stats.currentMonthRevenue.toFixed(2)} today, it's higher than last month. Keep up your
+          You earn £{stats.currentMonthRevenue.toFixed(2)} today, it's higher than last month. Keep up your
           good work!
         </p>
       </div>
@@ -146,7 +118,7 @@ export default function MonthlyTarget({stats} : MonthlyTargetProps) {
             Target
           </p>
           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            ${stats.monthlyRevenueTarget.toFixed(2)}
+            £{stats.monthlyRevenueTarget.toFixed(2)}
           </p>
         </div>
 
@@ -157,7 +129,7 @@ export default function MonthlyTarget({stats} : MonthlyTargetProps) {
             Revenue
           </p>
           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            ${stats.currentMonthRevenue.toFixed(2)}
+            £{stats.currentMonthRevenue.toFixed(2)}
           </p>
         </div>
       </div>

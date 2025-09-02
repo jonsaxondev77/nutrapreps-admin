@@ -48,7 +48,7 @@ export default function MonthlySalesChart() {
     fill: { opacity: 1 },
     tooltip: {
       x: { show: false },
-      y: { formatter: (val: number) => `$${val.toFixed(2)}` }, // Format as currency
+      y: { formatter: (val: number) => `£${val.toFixed(2)}` }, // Format as currency
     },
   };
 
