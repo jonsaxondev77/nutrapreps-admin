@@ -9,6 +9,7 @@ type PropsType = {
   selected: Date;
   onChange: (date: Date) => void;
   enableSundaysAndWednesdays?: boolean;
+  enableSundaysOnly?: boolean;
 };
 
 export default function DatePickerCustom({
@@ -16,6 +17,7 @@ export default function DatePickerCustom({
   selected,
   onChange,
   enableSundaysAndWednesdays = false,
+  enableSundaysOnly = false,
 }: PropsType) {
   const inputRef = useRef<HTMLInputElement>(null);
   const flatpickrInstance = useRef<flatpickr.Instance | null>(null);
@@ -33,6 +35,15 @@ export default function DatePickerCustom({
           }
         },
       };
+
+      if(enableSundaysOnly) {
+        options.disable = [
+          function(date) {
+            return (date.getDay() !== 0);
+          }
+        ]
+      }
+      
 
       if (enableSundaysAndWednesdays) {
         options.disable = [
