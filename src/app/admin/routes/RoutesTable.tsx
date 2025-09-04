@@ -15,6 +15,8 @@ import Button from "@/components/ui/button/Button";
 import { PencilIcon } from "@/icons";
 import RouteModal from "./RouteModal";
 import DeleteRouteModal from "./DeleteModal";
+import TableSkeleton from "@/components/tables/TableSkeleton";
+import ErrorAlert from "@/components/common/ErrorAlert";
 
 interface Route {
   id: number;
@@ -58,9 +60,13 @@ export default function RoutesTable() {
     console.log('Route was deleted, refresh data...');
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading routes</div>;
+  if (isLoading) {
+    return <TableSkeleton columns={2} rows={10} />;
+  }
 
+  if (error) {
+    return <ErrorAlert error={error} title="Error loading routes" />;
+  }
   return (
     <>
       <PageBreadcrumb pageTitle="Routes" />

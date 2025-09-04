@@ -9,6 +9,8 @@ import { PencilIcon, PlusIcon } from "@/icons";
 import MealOptionModal from "./MealOptionModal";
 import DeleteModal from "./DeleteModal";
 import Badge from "@/components/ui/badge/Badge";
+import TableSkeleton from "@/components/tables/TableSkeleton";
+import ErrorAlert from "@/components/common/ErrorAlert";
 
 interface MealOption {
   id: number;
@@ -51,17 +53,22 @@ export default function MealOptionsTable() {
     setIsDeleteModalOpen(true);
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading meal options.</div>;
+  if (isLoading) {
+    return <TableSkeleton columns={4} rows={10} />;
+  }
+
+  if (error) {
+    return <ErrorAlert error={error} title="Error loading meal options" />;
+  }
 
   return (
     <>
       <PageBreadcrumb pageTitle="Meal Options" />
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-5 xl:px-6 xl:py-6">
-            <Button size="sm" variant="primary" startIcon={<PlusIcon />} onClick={handleAddClick}>
-                Add Meal Option
-            </Button>
+          <Button size="sm" variant="primary" startIcon={<PlusIcon />} onClick={handleAddClick}>
+            Add Meal Option
+          </Button>
         </div>
         <div className="max-w-full overflow-x-auto">
           <div className="min-w-[1102px]">
@@ -84,10 +91,10 @@ export default function MealOptionsTable() {
                     <TableCell className="px-5 py-4 text-gray-800 text-start dark:text-white/90">{option.name}</TableCell>
                     <TableCell className="px-5 py-4 text-gray-800 text-start dark:text-white/90">{option.meal.name}</TableCell>
                     <TableCell>
-                        {option.isAddon 
-                            ? <Badge variant="light">Add-on</Badge> 
-                            : <Badge variant="solid">Standard</Badge>
-                        }
+                      {option.isAddon
+                        ? <Badge variant="light">Add-on</Badge>
+                        : <Badge variant="solid">Standard</Badge>
+                      }
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">

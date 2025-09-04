@@ -3,6 +3,7 @@ import { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { useGetMonthlySalesDataQuery } from "@/lib/services/dashboardApi"; // Import the hook
+import { MetricCardSkeleton } from "./Skeletons";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
@@ -48,7 +49,7 @@ export default function MonthlySalesChart() {
     fill: { opacity: 1 },
     tooltip: {
       x: { show: false },
-      y: { formatter: (val: number) => `£${val.toFixed(2)}` }, // Format as currency
+      y: { formatter: (val: number) => `${val.toFixed(2)}` }, // Format as currency
     },
   };
 
@@ -62,7 +63,7 @@ export default function MonthlySalesChart() {
   const [isOpen, setIsOpen] = useState(false);
   // ... (dropdown functions are fine)
 
-  if (isLoading) return <div>Loading Chart...</div>
+  if (isLoading) return <MetricCardSkeleton/>
   if (error) return <div>Error loading chart data.</div>
 
   return (

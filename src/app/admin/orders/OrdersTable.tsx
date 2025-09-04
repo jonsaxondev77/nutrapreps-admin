@@ -12,6 +12,8 @@ import Button from '@/components/ui/button/Button';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
 import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import DatePickerCustom from '@/components/form/date-picker-custom';
+import TableSkeleton from '@/components/tables/TableSkeleton';
+import ErrorAlert from '@/components/common/ErrorAlert';
 
 const getPreviousSunday = (date: Date) => {
     const d = new Date(date);
@@ -34,7 +36,7 @@ const OrdersTable = () => {
         pageNumber: currentPage,
         pageSize: 10,
         weekStart: weekStartISO,
-      });
+    });
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
@@ -49,8 +51,14 @@ const OrdersTable = () => {
         setCurrentPage(1);
     };
 
-    if (isLoading) return <div>Loading...</div>;
-    if (error) return <div>Error loading meals</div>;
+    if (isLoading) {
+        return <TableSkeleton columns={5} rows={10} />;
+    }
+
+    if (error) { // Use the new component for error display
+        return <ErrorAlert error={error} title="Error loading meals" />;
+    }
+
 
     return (
         <>
@@ -96,7 +104,7 @@ const OrdersTable = () => {
                                     <TableCell
                                         isHeader
                                         className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                                        >
+                                    >
                                         Actions
                                     </TableCell>
                                 </TableRow>
@@ -108,7 +116,7 @@ const OrdersTable = () => {
                                             {order.id}
                                         </TableCell>
                                         <TableCell className="px-4 py-3 text-gray-500 text-start dark:text-gray-400">
-                                            {order.name}<br/>
+                                            {order.name}<br />
                                             {order.email}
                                         </TableCell>
                                         <TableCell className="px-4 py-3 text-gray-500 text-start dark:text-gray-400">
@@ -117,7 +125,7 @@ const OrdersTable = () => {
                                         <TableCell className="px-4 py-3 text-gray-500 text-start dark:text-gray-400">
                                             {order.total}
                                         </TableCell>
-                                         <TableCell className="px-5 py-4 text-start">
+                                        <TableCell className="px-5 py-4 text-start">
                                             <Button variant="primary" size="sm" onClick={() => handleViewDetails(order.id)}>
                                                 <Eye size={16} />
                                             </Button>

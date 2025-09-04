@@ -4,6 +4,7 @@ import { ApexOptions } from "apexcharts";
 import ChartTab from "../common/ChartTab";
 import dynamic from "next/dynamic";
 import { useGetStatisticsChartDataQuery } from "@/lib/services/dashboardApi"; // Import the hook
+import { StatisticsChartSkeleton } from "./Skeletons";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
@@ -80,7 +81,10 @@ export default function StatisticsChart() {
     },
   ];
 
-  if (isLoading) return <div>Loading Statistics...</div>;
+  if (isLoading) {
+    return <StatisticsChartSkeleton/>;
+  }
+
   if (error) return <div>Error loading statistics data.</div>;
 
   return (

@@ -14,18 +14,20 @@ import Button from "@/components/ui/button/Button";
 import { PencilIcon } from "@/icons";
 import MealModal from "./MealModal";
 import DeleteMealModal from "./DeleteModal";
+import TableSkeleton from "@/components/tables/TableSkeleton";
+import ErrorAlert from "@/components/common/ErrorAlert";
 
 interface Meal {
-    id: number;
-    name: string;
-    description: string;
-    fat: string;
-    carbs: string;
-    protein: string;
-    calories: string;
-    allergies: string | null;
-    supplement: number | null;
-    stripeProductId: string | null;
+  id: number;
+  name: string;
+  description: string;
+  fat: string;
+  carbs: string;
+  protein: string;
+  calories: string;
+  allergies: string | null;
+  supplement: number | null;
+  stripeProductId: string | null;
 }
 
 export default function MealsTable() {
@@ -60,8 +62,14 @@ export default function MealsTable() {
     // This will be handled by RTK Query's cache invalidation
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading meals</div>;
+  if (isLoading) {
+    return <TableSkeleton columns={3} rows={10} />;
+  }
+
+  if (error) {
+    return <ErrorAlert error={error} title="Error loading meals" />;
+  }
+
 
   return (
     <>
@@ -87,7 +95,7 @@ export default function MealsTable() {
                   >
                     Description
                   </TableCell>
-                   <TableCell
+                  <TableCell
                     isHeader
                     className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                   >
@@ -104,7 +112,7 @@ export default function MealsTable() {
                     <TableCell className="px-4 py-3 text-gray-500 text-start dark:text-gray-400">
                       {meal.description}
                     </TableCell>
-                     <TableCell className="px-5 py-4 text-start">
+                    <TableCell className="px-5 py-4 text-start">
                       <div className="flex items-center gap-5">
                         <Button size="sm" onClick={() => handleEditClick(meal)}>
                           Edit

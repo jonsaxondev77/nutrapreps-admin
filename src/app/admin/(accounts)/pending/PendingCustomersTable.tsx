@@ -12,6 +12,8 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Pagination from "@/components/tables/Pagination";
 import Button from "@/components/ui/button/Button";
 import AssignRouteModal from "./AssignRouteModal";
+import TableSkeleton from "@/components/tables/TableSkeleton";
+import ErrorAlert from "@/components/common/ErrorAlert";
 
 export default function PendingCustomersTable() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,8 +35,14 @@ export default function PendingCustomersTable() {
   };
 
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading pending customers</div>;
+  if (isLoading) {
+    return <TableSkeleton columns={3} rows={10} />;
+  }
+
+
+  if (error) { // Use the new component for error display
+    return <ErrorAlert error={error} title="Error loading pending customers" />;
+  }
 
   return (
     <>
@@ -102,9 +110,9 @@ export default function PendingCustomersTable() {
       </div>
       {selectedAccountId && (
         <AssignRouteModal
-            isOpen={isModalOpen}
-            onClose={handleCloseModal}
-            accountId={selectedAccountId}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          accountId={selectedAccountId}
         />
       )}
     </>

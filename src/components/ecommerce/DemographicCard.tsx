@@ -1,6 +1,7 @@
 "use client";
 import { useGetDemographicsDataQuery } from "@/lib/services/dashboardApi";
 import NorthWestMap from "./NorthWestMap"; // Import the new map
+import { DemographicCardSkeleton } from "./Skeletons";
 
 export default function DemographicCard() {
   const { data: demographics, isLoading, error } = useGetDemographicsDataQuery();
@@ -8,7 +9,7 @@ export default function DemographicCard() {
   // Calculate the total customers from the fetched data
   const totalCustomers = demographics?.reduce((sum, city) => sum + city.customerCount, 0) || 0;
 
-  if (isLoading) return <div>Loading Demographics...</div>;
+  if (isLoading) return <DemographicCardSkeleton/>;
   if (error) return <div>Error loading data.</div>;
 
   return (

@@ -8,6 +8,8 @@ import Button from "@/components/ui/button/Button";
 import Badge from "@/components/ui/badge/Badge";
 import CustomerModal from "./CustomerModal";
 import { Account } from "@/types/customers";
+import TableSkeleton from "@/components/tables/TableSkeleton";
+import ErrorAlert from "@/components/common/ErrorAlert";
 
 export default function CustomersTable() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,8 +26,14 @@ export default function CustomersTable() {
     setIsModalOpen(true);
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading customers.</div>;
+  if (isLoading) {
+    return <TableSkeleton columns={4} rows={10} />;
+  }
+
+  if (error) {
+    return <ErrorAlert error={error} title="Error loading customers" />;
+  }
+
 
   return (
     <>

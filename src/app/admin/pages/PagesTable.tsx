@@ -11,14 +11,16 @@ import {
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Button from "@/components/ui/button/Button";
 import Link from "next/link";
+import TableSkeleton from "@/components/tables/TableSkeleton";
 
 export default function PagesTable() {
   const { data: pages, error, isLoading } = useGetAllPagesQuery();
 
   const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3001";
 
-
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return <TableSkeleton columns={4} rows={10} />;
+  }
   if (error) return <div>Error loading pages</div>;
 
   return (

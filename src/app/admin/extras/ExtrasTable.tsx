@@ -16,6 +16,8 @@ import { PencilIcon } from "@/icons";
 import ExtraModal from "./ExtraModal";
 import DeleteExtraModal from "./DeleteModal";
 import Badge from "@/components/ui/badge/Badge";
+import TableSkeleton from "@/components/tables/TableSkeleton";
+import ErrorAlert from "@/components/common/ErrorAlert";
 
 interface Extra {
   id: number;
@@ -58,8 +60,13 @@ export default function ExtrasTable() {
     // This will be handled by RTK Query's cache invalidation
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading extras</div>;
+  if (isLoading) {
+    return <TableSkeleton columns={6} rows={10} />;
+  }
+
+  if (error) {
+    return <ErrorAlert error={error} title="Error loading extras" />;
+  }
 
   return (
     <>

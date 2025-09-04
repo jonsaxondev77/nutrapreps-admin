@@ -15,6 +15,8 @@ import { PencilIcon } from '@/icons';
 import PackageModal from './PackageModal';
 import DeletePackageModal from './DeleteModal';
 import { useState } from 'react';
+import TableSkeleton from '@/components/tables/TableSkeleton';
+import ErrorAlert from '@/components/common/ErrorAlert';
 
 interface Package {
   id: number;
@@ -54,8 +56,14 @@ export default function PackagesTable() {
     setIsDeleteModalOpen(true);
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading packages</div>;
+  if (isLoading) {
+    return <TableSkeleton columns={4} rows={10} />;
+  }
+
+
+  if (error) { // Use the new component for error display
+    return <ErrorAlert error={error} title="Error loading packages" />;
+  }
 
   return (
     <>
