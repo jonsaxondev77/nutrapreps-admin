@@ -43,9 +43,10 @@ jobs:
             .next/
             public/
             node_modules/
+            iisnode.yml
             package.json
             package-lock.json
-            next.config.ts
+            next.config.js
             src/middleware.ts
             server.js
             web.config
