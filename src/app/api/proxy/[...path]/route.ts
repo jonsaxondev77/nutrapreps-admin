@@ -6,9 +6,9 @@ function getApiUrl(request: NextRequest): string | null {
   if (!API_URL) {
     return null;
   }
-  const { pathname } = new URL(request.url);
+  const { pathname, search } = new URL(request.url);
   const apiPath = pathname.replace('/api/proxy', '');
-  return `${API_URL}${apiPath}`;
+  return `${API_URL}${apiPath}${search}`;
 }
 
 export async function GET(request: NextRequest) {
@@ -23,6 +23,12 @@ export async function GET(request: NextRequest) {
       method: 'GET',
       headers: request.headers,
     });
+
+    if (!response.ok) {
+      // If the response is not OK, return a descriptive error message from the proxy.
+      return NextResponse.json({ error: `API responded with status: ${response.status} ${response.statusText}` }, { status: response.status });
+    }
+
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
   } catch (error) {

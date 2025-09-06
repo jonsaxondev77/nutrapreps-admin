@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ['admin.localhost:3000'],
   /* config options here */
   webpack(config) {
     config.module.rules.push({

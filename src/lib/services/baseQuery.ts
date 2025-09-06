@@ -2,7 +2,7 @@ import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { getSession, signOut } from 'next-auth/react';
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL,
+  baseUrl: '/api/proxy',
   prepareHeaders: async (headers) => {
     const session = await getSession();
     if (session?.user.jwtToken) {
