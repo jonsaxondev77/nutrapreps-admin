@@ -63,25 +63,6 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_D79CB1111D2A4AAFBFA9A1FDC71775BA }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_16C0613F05D74FE5915E68CE4447EED5 }}
           
-      - name: Set App Settings for Staging Slot
-        uses: Azure/appservice-settings@v1
-        with:
-          app-name: 'nutrapreps-admin'
-          slot-name: 'Staging'
-          app-settings-json: |
-            {
-              "NEXTAUTH_URL": "${{ secrets.NEXTAUTH_URL }}",
-              "NEXTAUTH_SECRET": "${{ secrets.NEXTAUTH_SECRET }}",
-              "STRIPE_SECRET_KEY": "${{ secrets.STRIPE_SECRET_KEY }}",
-              "BUNNY_CDN_STORAGE_ZONE_NAME": "${{ secrets.BUNNY_CDN_STORAGE_ZONE_NAME }}",
-              "BUNNY_CDN_STORAGE_API_KEY": "${{ secrets.BUNNY_CDN_STORAGE_API_KEY }}",
-              "NEXT_PUBLIC_API_URL": "${{ secrets.NEXT_PUBLIC_API_URL }}",
-              "API_URL": "${{ secrets.API_URL }}",
-              "NEXT_PUBLIC_FRONTEND_URL": "${{ secrets.NEXT_PUBLIC_FRONTEND_URL }}",
-              "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}",
-              "NEXT_PUBLIC_BUNNY_CDN_PULL_ZONE_HOSTNAME": "${{ secrets.NEXT_PUBLIC_BUNNY_CDN_PULL_ZONE_HOSTNAME }}"
-            }
-      
       - name: Deploy to Azure Web App (Staging)
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
