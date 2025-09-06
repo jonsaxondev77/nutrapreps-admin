@@ -16,7 +16,7 @@ import TableSkeleton from "@/components/tables/TableSkeleton";
 export default function PagesTable() {
   const { data: pages, error, isLoading } = useGetAllPagesQuery();
 
-  const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3001";
+  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3001";
 
   if (isLoading) {
     return <TableSkeleton columns={4} rows={10} />;
