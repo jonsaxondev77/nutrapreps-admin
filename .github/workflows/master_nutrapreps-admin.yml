@@ -47,7 +47,7 @@ jobs:
             iisnode.yml
             package.json
             package-lock.json
-            next.config.js
+            next-config.js
             src/middleware.ts
             server.js
             web.config
