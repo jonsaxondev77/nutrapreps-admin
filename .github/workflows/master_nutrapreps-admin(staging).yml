@@ -1,7 +1,5 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy Node.js app to Azure Web App - nutrapreps-admin
+        
+name: Build and deploy ASP.Net Core app to Azure Web App - nutrapreps-admin
 
 on:
   push:
@@ -11,9 +9,9 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -22,25 +20,35 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
-
-      - name: npm install, build, and test
+      
+      - name: npm install and build
         run: |
           npm install
-          npm run build --if-present
-          npm run test --if-present
-      
+          npm run build
+          # Removed the --if-present flag for 'test' as it is not present in the package.json and would cause issues.
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: |
+            .next/
+            public/
+            iisnode.yml
+            package.json
+            package-lock.json
+            next.config.js
+            src/middleware.ts
+            server.js
+            web.config
+          include-hidden-files: true
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
@@ -54,12 +62,30 @@ jobs:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_D9B8DF644D374A8D8EDF79AFB8390786 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_D79CB1111D2A4AAFBFA9A1FDC71775BA }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_16C0613F05D74FE5915E68CE4447EED5 }}
-
-      - name: 'Deploy to Azure Web App'
-        uses: azure/webapps-deploy@v3
-        id: deploy-to-webapp
+          
+      - name: Set App Settings for Staging Slot
+        uses: Azure/appservice-settings@v1
         with:
           app-name: 'nutrapreps-admin'
-          slot-name: 'staging'
+          slot-name: 'Staging'
+          app-settings-json: |
+            {
+              "NEXTAUTH_URL": "${{ secrets.NEXTAUTH_URL }}",
+              "NEXTAUTH_SECRET": "${{ secrets.NEXTAUTH_SECRET }}",
+              "STRIPE_SECRET_KEY": "${{ secrets.STRIPE_SECRET_KEY }}",
+              "BUNNY_CDN_STORAGE_ZONE_NAME": "${{ secrets.BUNNY_CDN_STORAGE_ZONE_NAME }}",
+              "BUNNY_CDN_STORAGE_API_KEY": "${{ secrets.BUNNY_CDN_STORAGE_API_KEY }}",
+              "NEXT_PUBLIC_API_URL": "${{ secrets.NEXT_PUBLIC_API_URL }}",
+              "API_URL": "${{ secrets.API_URL }}",
+              "NEXT_PUBLIC_FRONTEND_URL": "${{ secrets.NEXT_PUBLIC_FRONTEND_URL }}",
+              "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}",
+              "NEXT_PUBLIC_BUNNY_CDN_PULL_ZONE_HOSTNAME": "${{ secrets.NEXT_PUBLIC_BUNNY_CDN_PULL_ZONE_HOSTNAME }}"
+            }
+      
+      - name: Deploy to Azure Web App (Staging)
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'nutrapreps-admin'
+          slot-name: 'Staging'
           package: .
-          

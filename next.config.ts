@@ -3,26 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   webpack(config) {
-    // Grab the existing rule that handles SVG imports
-    const fileLoaderRule = config.module.rules.find((rule:any) =>
-      rule.test && rule.test.test(".svg")
-    );
-
-    if (fileLoaderRule) {
-      // Modify the file loader rule to ignore SVG files
-      // so that @svgr/webpack takes over
-      fileLoaderRule.exclude = /\.svg$/;
-    }
-
-    // Add a new rule to handle SVG imports as React components
     config.module.rules.push({
       test: /\.svg$/,
-      issuer: {
-        and: [/\.(js|ts)x?$/],
-      },
       use: ["@svgr/webpack"],
     });
-
     return config;
   },
   typescript: {
