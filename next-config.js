@@ -1,6 +1,5 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+// next.config.js
+const nextConfig = {
   /* config options here */
   webpack(config) {
     config.module.rules.push({
@@ -29,16 +28,16 @@ const nextConfig: NextConfig = {
         hostname: 'placehold.co',
         port: '',
         pathname: '/**',
-      }, 
+      },
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
         port: '',
         pathname: '/**'
-      }, 
+      },
       {
         protocol: 'https',
-        hostname: 'nutrapreps.b-cdn.net', 
+        hostname: 'nutrapreps.b-cdn.net',
         port: '',
         pathname: '/**',
       }
@@ -46,4 +45,4 @@ const nextConfig: NextConfig = {
   }
 };
 
-export default nextConfig;
+module.exports = nextConfig;
