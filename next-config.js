@@ -1,5 +1,6 @@
 // next.config.js
 const nextConfig = {
+  dangerouslyAllowSVG: true,
   /* config options here */
   webpack(config) {
     config.module.rules.push({
@@ -40,6 +41,18 @@ const nextConfig = {
         hostname: 'nutrapreps.b-cdn.net',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'admin.nutrapreps.co.uk',
+        port: '',
+        pathname: '/**'
+      },
+      {
+        protocol: 'https',
+        hostname: 'nutrapreps.co.uk',
+        port: '',
+        pathname: '/**'
       }
     ]
   }
