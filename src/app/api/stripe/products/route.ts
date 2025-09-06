@@ -1,15 +1,13 @@
-// src/app/api/stripe/products/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {});
-
-// This API route is now generic and can handle creating/updating products
-// for both meals and packages.
-
 export async function POST(req: NextRequest) {
+  if (!process.env.STRIPE_SECRET_KEY) {
+      return NextResponse.json({ error: "Stripe secret key is not configured." }, { status: 500 });
+  }
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {});
+
   try {
-    // It now looks for a generic 'productData' key instead of 'meal'.
     const { productData } = await req.json();
 
     if (!productData) {
@@ -33,8 +31,12 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  if (!process.env.STRIPE_SECRET_KEY) {
+      return NextResponse.json({ error: "Stripe secret key is not configured." }, { status: 500 });
+  }
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {});
+
   try {
-    // It now looks for a generic 'productData' key.
     const { productData } = await req.json();
 
     if (!productData || !productData.stripeProductId) {
