@@ -1,11 +1,8 @@
 import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { getSession, signOut } from 'next-auth/react';
-import getConfig from 'next/config';
-
-const { serverRuntimeConfig } = getConfig();
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: serverRuntimeConfig.apiUrl,
+  baseUrl: process.env.NEXT_PUBLIC_API_URL,
   prepareHeaders: async (headers) => {
     const session = await getSession();
     if (session?.user.jwtToken) {

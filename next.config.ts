@@ -1,10 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Add this new configuration section
-  serverRuntimeConfig: {
-    apiUrl: process.env.API_URL,
-  },
   /* config options here */
   webpack(config) {
     config.module.rules.push({

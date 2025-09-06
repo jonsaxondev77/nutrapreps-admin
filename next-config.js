@@ -1,8 +1,5 @@
 // next.config.js
 const nextConfig = {
-  serverRuntimeConfig: {
-    apiUrl: process.env.API_URL,
-  },
   /* config options here */
   webpack(config) {
     config.module.rules.push({
