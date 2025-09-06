@@ -30,6 +30,7 @@ jobs:
           NEXTAUTH_URL: ${{secrets.NEXTAUTH_URL}}
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}}
           NEXT_PUBLIC_BUNNY_CDN_PULL_ZONE_HOSTNAME: ${{secrets.NEXT_PUBLIC_BUNNY_CDN_PULL_ZONE_HOSTNAME}}          
+          NEXT_PUBLIC_FRONTEND_URL: ${{secrets.NEXT_PUBLIC_FRONTEND_URL}}
         run: |
           npm install
           npm run build --if-present
