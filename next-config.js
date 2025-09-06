@@ -1,5 +1,8 @@
 // next.config.js
 const nextConfig = {
+  serverRuntimeConfig: {
+    apiUrl: process.env.API_URL,
+  },
   /* config options here */
   webpack(config) {
     config.module.rules.push({
@@ -28,16 +31,16 @@ const nextConfig = {
         hostname: 'placehold.co',
         port: '',
         pathname: '/**',
-      }, 
+      },
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
         port: '',
         pathname: '/**'
-      }, 
+      },
       {
         protocol: 'https',
-        hostname: 'nutrapreps.b-cdn.net', 
+        hostname: 'nutrapreps.b-cdn.net',
         port: '',
         pathname: '/**',
       }
