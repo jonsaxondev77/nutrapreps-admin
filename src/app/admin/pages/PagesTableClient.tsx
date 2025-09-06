@@ -19,6 +19,7 @@ interface PagesClientTableProps {
   frontendUrl: string;
 }
 
+
 export default function PagesClientTable({ frontendUrl }: PagesClientTableProps) {
   const { data: pages, error, isLoading } = useGetAllPagesQuery();
 
