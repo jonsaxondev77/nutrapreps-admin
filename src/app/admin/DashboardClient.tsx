@@ -9,6 +9,7 @@ import DemographicCard from "@/components/ecommerce/DemographicCard";
 import { useGetDashboardDataQuery } from "@/lib/services/dashboardApi";
 import { DashboardSkeleton } from "@/components/ecommerce/Skeletons";
 import ErrorAlert from "@/components/common/ErrorAlert";
+import OrderingStatusCard from "./OrderingStatusCard";
 
 
 export default function DashboardClient() {
@@ -24,6 +25,9 @@ export default function DashboardClient() {
     
     return (
         <div className="grid grid-cols-12 gap-4 md:gap-6">
+            <div className="col-span-12 xl:col-span-12">
+                <OrderingStatusCard />
+            </div>
             <div className="col-span-12 space-y-6 xl:col-span-7">
                 <EcommerceMetrics stats={data.stats} />
                 <MonthlySalesChart />

@@ -11,6 +11,7 @@ import { customersApi } from "./services/customersApi";
 import { addressApi } from "./services/addressApi";
 import { dashboardApi } from "./services/dashboardApi";
 import { ordersApi } from "./services/ordersApi";
+import { settingsApi } from "./services/settingsApi";
 
 
 export const makeStore = () => {
@@ -27,7 +28,8 @@ export const makeStore = () => {
       [customersApi.reducerPath] : customersApi.reducer,
       [addressApi.reducerPath]: addressApi.reducer,
       [dashboardApi.reducerPath]: dashboardApi.reducer,
-      [ordersApi.reducerPath]: ordersApi.reducer
+      [ordersApi.reducerPath]: ordersApi.reducer,
+      [settingsApi.reducerPath]: settingsApi.reducer
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(authApi.middleware,
@@ -35,7 +37,8 @@ export const makeStore = () => {
          mealOptionsApi.middleware, schedulerApi.middleware,
          packagesApi.middleware, extrasApi.middleware,
          customersApi.middleware, addressApi.middleware,
-         dashboardApi.middleware, ordersApi.middleware),
+         dashboardApi.middleware, ordersApi.middleware,
+         settingsApi.middleware),
   });
 };
 

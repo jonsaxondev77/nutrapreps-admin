@@ -4,6 +4,8 @@ import PagesClientTable from "./PagesTableClient";
 export default async function PagesTable() {
   // Access the environment variable directly on the server
   const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3001";
+
+  console.log(frontendUrl);
   
   return (
     <>

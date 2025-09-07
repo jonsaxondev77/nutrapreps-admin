@@ -23,8 +23,6 @@ interface PagesClientTableProps {
 export default function PagesClientTable({ frontendUrl }: PagesClientTableProps) {
   const { data: pages, error, isLoading } = useGetAllPagesQuery();
 
-    console.log(frontendUrl);
-
   if (isLoading) {
     return <TableSkeleton columns={4} rows={10} />;
   }
