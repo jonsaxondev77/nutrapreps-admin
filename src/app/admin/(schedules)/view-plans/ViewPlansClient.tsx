@@ -146,7 +146,7 @@ export default function ViewPlansClient({downloadApiUrl } :  { downloadApiUrl: s
                     setTimeout(() => {
                         const downloadUrl = `${downloadApiUrl}/api/jobs/${jobId}/download`;
                         console.log(`Attempting to download from: ${downloadUrl}`);
-                        window.location.href = downloadUrl;
+                        window.open(downloadUrl, '_blank');
                         refetch();
                     }, 500);
                 }

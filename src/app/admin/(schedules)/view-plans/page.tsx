@@ -1,4 +1,3 @@
-"use client";
 import React, { Suspense } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ViewPlansClient from "./ViewPlansClient";
@@ -6,6 +5,8 @@ import ViewPlansClient from "./ViewPlansClient";
 export default function ViewPlansPage() {
 
     const downloadApiUrl = process.env.API_URL || "http://apinutrapreps.azurewebsites.net";
+
+    console.log(downloadApiUrl);
 
     return (
         <>

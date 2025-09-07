@@ -20,7 +20,7 @@ interface PagesClientTableProps {
 }
 
 
-export default function PagesClientTable({ frontendUrl }: PagesClientTableProps) {
+export default function PagesClientTable({ frontEndUrl }: PagesClientTableProps) {
   const { data: pages, error, isLoading } = useGetAllPagesQuery();
 
   if (isLoading) {
@@ -41,8 +41,8 @@ export default function PagesClientTable({ frontendUrl }: PagesClientTableProps)
       <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
         {pages?.map((page) => {
           const editHref = page.path === '/'
-            ? `${frontendUrl}/edit`
-            : `${frontendUrl}${page.path}/edit`;
+            ? `${frontEndUrl}/edit`
+            : `${frontEndUrl}${page.path}/edit`;
           return (
             <TableRow key={page.path}>
               <TableCell className="px-5 py-4 text-gray-800 text-start dark:text-white/90">{page.title}</TableCell>

@@ -1,9 +1,7 @@
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PagesClientTable from "./PagesTableClient";
 
-export default async function PagesTable() {
-  // Access the environment variable directly on the server
-  const frontendUrl = process.env.FRONTEND_URL || "http://www.nutrapreps.co.uk";
+export default async function PagesTable({frontEndUrl} : {frontEndUrl: string}) {
 
   return (
     <>
@@ -12,7 +10,7 @@ export default async function PagesTable() {
         <div className="max-w-full overflow-x-auto">
           <div className="min-w-[1102px]">
             {/* Pass the dynamic URL to the client component */}
-            <PagesClientTable frontendUrl={frontendUrl} />
+            <PagesClientTable frontEndUrl={frontEndUrl} />
           </div>
         </div>
       </div>
