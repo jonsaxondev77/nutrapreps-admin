@@ -29,12 +29,13 @@ const getPreviousSunday = (date: Date) => {
 const OrdersTable = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedDate, setSelectedDate] = useState(getPreviousSunday(new Date()));
+    const [pageSize, setPageSize] = useState(10); // NEW: State for page size
 
     const weekStartISO = new Date(Date.UTC(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate())).toISOString();
 
     const { data, error, isLoading } = useGetOrdersQuery({
         pageNumber: currentPage,
-        pageSize: 100,
+        pageSize: pageSize,
         weekStart: weekStartISO,
     });
 
@@ -50,12 +51,18 @@ const OrdersTable = () => {
         setSelectedDate(getPreviousSunday(date));
         setCurrentPage(1);
     };
+    
+    const handlePageSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setPageSize(Number(event.target.value));
+        setCurrentPage(1);
+    };
+
 
     if (isLoading) {
         return <TableSkeleton columns={5} rows={10} />;
     }
 
-    if (error) { // Use the new component for error display
+    if (error) {
         return <ErrorAlert error={error} title="Error loading meals" />;
     }
 
@@ -63,13 +70,34 @@ const OrdersTable = () => {
     return (
         <>
             <PageBreadcrumb pageTitle="Orders" />
-            <div className="mb-4">
-                <DatePickerCustom
-                    id="weekstart-date-picker"
-                    selected={selectedDate}
-                    onChange={handleDateChange}
-                    enableSundaysOnly={true}
-                />
+            <div className="mb-4 flex flex-col sm:flex-row sm:justify-between items-start sm:items-end">
+                <div className="mb-4 sm:mb-0">
+                    <DatePickerCustom
+                        id="weekstart-date-picker"
+                        selected={selectedDate}
+                        onChange={handleDateChange}
+                        enableSundaysOnly={true}
+                    />
+                </div>
+                {/* NEW: Page Size Dropdown */}
+                <div className="flex items-center space-x-2">
+                    <label htmlFor="pageSizeSelect" className="text-gray-600 dark:text-gray-300">
+                        Items per page:
+                    </label>
+                    <select
+                        id="pageSizeSelect"
+                        value={pageSize}
+                        onChange={handlePageSizeChange}
+                        className="rounded-md border border-gray-300 bg-white px-2 py-1 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    >
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                        <option value={250}>250</option>
+                        <option value={500}>500</option>
+                    </select>
+                </div>
             </div>
             <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
                 <div className="max-w-full overflow-x-auto">
