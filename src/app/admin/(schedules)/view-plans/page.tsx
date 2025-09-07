@@ -5,7 +5,7 @@ import ViewPlansClient from "./ViewPlansClient";
 
 export default function ViewPlansPage() {
 
-    const downloadApiUrl = process.env.API_URL || "http://localhost:5265";
+    const downloadApiUrl = process.env.API_URL || "http://apinutrapreps.azurewebsites.net";
 
     return (
         <>
