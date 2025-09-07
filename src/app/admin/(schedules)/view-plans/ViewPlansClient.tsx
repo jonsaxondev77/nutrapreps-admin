@@ -82,7 +82,7 @@ export default function ViewPlansClient({downloadApiUrl } :  { downloadApiUrl: s
         setProgress: (progress: number) => void,
         setMessage: (message: string) => void,
         setJobId: (jobId: string | null) => void,
-        onComplete?: () => void
+        onComplete?: (jobId: string) => void
     ) => {
         if (!jobId || !isPolling) return;
 
@@ -103,7 +103,7 @@ export default function ViewPlansClient({downloadApiUrl } :  { downloadApiUrl: s
                 if (data.status === 'Failed') {
                     setError(data.message);
                 } else {
-                    onComplete?.();
+                    onComplete?.(jobId);
                 }
             }
         };
@@ -117,18 +117,44 @@ export default function ViewPlansClient({downloadApiUrl } :  { downloadApiUrl: s
         return () => clearInterval(interval);
     };
 
-    useEffect(() => {
-        const cleanup = createPoll(optimizationJobId, isOptimizing, setIsOptimizing, setOptimizationProgress, setOptimizationStatusMessage, setOptimizationJobId, () => refetch());
+     useEffect(() => {
+        const cleanup = createPoll(
+            optimizationJobId,
+            isOptimizing,
+            setIsOptimizing,
+            setOptimizationProgress,
+            setOptimizationStatusMessage,
+            setOptimizationJobId,
+            (jobId) => { refetch(); }
+        );
         return cleanup;
-    }, [optimizationJobId, isOptimizing]);
+    }, [optimizationJobId, isOptimizing, refetch]);
     
     useEffect(() => {
-        const cleanup = createPoll(sheetJobId, isGeneratingSheet, setIsGeneratingSheet, setSheetProgress, setSheetStatusMessage, setSheetJobId, () => {
-            const downloadUrl = `${downloadApiUrl}/api/jobs/${sheetJobId}/download`;
-            window.open(downloadUrl, '_blank');
-        });
-        return cleanup;
-    }, [sheetJobId, isGeneratingSheet]);
+        if (sheetJobId && isGeneratingSheet) {
+            console.log(`Starting poll for sheet job: ${sheetJobId}`);
+            const cleanup = createPoll(
+                sheetJobId,
+                isGeneratingSheet,
+                setIsGeneratingSheet,
+                setSheetProgress,
+                setSheetStatusMessage,
+                setSheetJobId,
+                (jobId) => {
+                    console.log(`Job reported as completed. Will attempt download in 500ms.`);
+                    // Correctly use the jobId from the callback, and the downloadApiUrl prop
+                    setTimeout(() => {
+                        const downloadUrl = `${downloadApiUrl}/api/jobs/${jobId}/download`;
+                        console.log(`Attempting to download from: ${downloadUrl}`);
+                        window.location.href = downloadUrl;
+                        refetch();
+                    }, 500);
+                }
+            );
+            return cleanup;
+        }
+        return undefined;
+    }, [sheetJobId, isGeneratingSheet, downloadApiUrl, refetch]);
 
     const handleOptimizePlans = async () => {
         setIsOptimizing(true);
