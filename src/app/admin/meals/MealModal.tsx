@@ -83,7 +83,7 @@ export default function MealModal({
                     fat: "",
                     allergies: "",
                     supplement: 0,
-                    imageUrl: "",
+                    imageUrl: ""
                 });
             }
         }
@@ -259,6 +259,16 @@ export default function MealModal({
                                 {...register("fat")}
                                 error={!!errors.fat}
                                 hint={errors.fat?.message}
+                            />
+                        </div>
+                        <div className="md:col-span-2">
+                            <Label htmlFor="allergens">Allergens</Label>
+                            <TextAreaCustom
+                                id="allergens"
+                                {...register("allergies")}
+                                rows={3}
+                                error={!!errors.allergies}
+                                hint={errors.allergies?.message}
                             />
                         </div>
                         <div className="md:col-span-2">
