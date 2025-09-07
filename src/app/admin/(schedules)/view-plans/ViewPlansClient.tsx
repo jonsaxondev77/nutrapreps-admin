@@ -42,7 +42,7 @@ const getInitialDate = (dateFromUrl: string | null): Date => {
 };
 
 
-export default function ViewPlansClient() {
+export default function ViewPlansClient({downloadApiUrl } :  { downloadApiUrl: string}) {
     // 4. Read the 'date' parameter from the URL
     const searchParams = useSearchParams();
     const dateFromUrl = searchParams.get('date');
@@ -124,7 +124,7 @@ export default function ViewPlansClient() {
     
     useEffect(() => {
         const cleanup = createPoll(sheetJobId, isGeneratingSheet, setIsGeneratingSheet, setSheetProgress, setSheetStatusMessage, setSheetJobId, () => {
-            const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/jobs/${sheetJobId}/download`;
+            const downloadUrl = `${downloadApiUrl}/api/jobs/${sheetJobId}/download`;
             window.open(downloadUrl, '_blank');
         });
         return cleanup;

@@ -4,11 +4,14 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ViewPlansClient from "./ViewPlansClient";
 
 export default function ViewPlansPage() {
+
+    const downloadApiUrl = process.env.API_URL || "http://localhost:5265";
+
     return (
         <>
             <Suspense>
                 <PageBreadcrumb pageTitle="View & Manage Plans" />
-                <ViewPlansClient />
+                <ViewPlansClient downloadApiUrl={downloadApiUrl} />
             </Suspense>
         </>
     );
