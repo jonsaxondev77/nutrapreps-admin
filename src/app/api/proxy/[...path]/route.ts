@@ -50,6 +50,10 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(body),
     });
 
+    if (response.status === 202) {
+      return NextResponse.json({ message: 'Request accepted for processing.' }, { status: 202 });
+    }
+
     if (!response.ok) {
       // If the response is not OK, return a descriptive error message from the proxy.
       return NextResponse.json({ error: `API responded with status: ${response.status} ${response.statusText}` }, { status: response.status });
