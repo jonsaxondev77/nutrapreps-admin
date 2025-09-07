@@ -34,7 +34,7 @@ const OrdersTable = () => {
 
     const { data, error, isLoading } = useGetOrdersQuery({
         pageNumber: currentPage,
-        pageSize: 10,
+        pageSize: 100,
         weekStart: weekStartISO,
     });
 
