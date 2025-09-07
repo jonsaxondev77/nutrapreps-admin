@@ -15,6 +15,19 @@ import AssignRouteModal from "./AssignRouteModal";
 import TableSkeleton from "@/components/tables/TableSkeleton";
 import ErrorAlert from "@/components/common/ErrorAlert";
 
+// Helper function to format the address object into a comma-separated string
+const formatAddress = (address) => {
+    if (!address) return '';
+    const addressParts = [
+        address.line1,
+        address.line2,
+        address.line3,
+        address.postcode,
+    ];
+    // Filter out any falsy values (null, '', etc.) and join with a comma and space
+    return addressParts.filter(Boolean).join(', ');
+};
+
 export default function PendingCustomersTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,7 +53,7 @@ export default function PendingCustomersTable() {
   }
 
 
-  if (error) { // Use the new component for error display
+  if (error) { 
     return <ErrorAlert error={error} title="Error loading pending customers" />;
   }
 
@@ -67,6 +80,11 @@ export default function PendingCustomersTable() {
                   </TableCell>
                   <TableCell
                     isHeader
+                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                    Address
+                  </TableCell>
+                  <TableCell
+                    isHeader
                     className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                   >
                     Actions
@@ -81,6 +99,9 @@ export default function PendingCustomersTable() {
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-start dark:text-gray-400">
                       {user.email}
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-gray-500 text-start dark:text-gray-400">
+                      {formatAddress(user.address)}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-start">
                       <div className="flex items-center gap-5">

@@ -6,7 +6,7 @@ import { PagedResponse } from '@/types/global';
 import React, { useState } from 'react';
 import Pagination from '@/components/tables/Pagination';
 import { format } from 'date-fns';
-import { Eye, Loader } from 'lucide-react';
+import { CheckCircle, Eye, Loader, XCircle } from 'lucide-react';
 import OrderDetailsModal from './OrderDetailsModal';
 import Button from '@/components/ui/button/Button';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
@@ -51,10 +51,11 @@ const OrdersTable = () => {
         setSelectedDate(getPreviousSunday(date));
         setCurrentPage(1);
     };
-    
+
+    // NEW: Handle page size change
     const handlePageSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setPageSize(Number(event.target.value));
-        setCurrentPage(1);
+        setCurrentPage(1); // Reset to page 1 when page size changes
     };
 
 
@@ -79,7 +80,7 @@ const OrdersTable = () => {
                         enableSundaysOnly={true}
                     />
                 </div>
-                {/* NEW: Page Size Dropdown */}
+                {/* Page Size Dropdown */}
                 <div className="flex items-center space-x-2">
                     <label htmlFor="pageSizeSelect" className="text-gray-600 dark:text-gray-300">
                         Items per page:
@@ -94,8 +95,6 @@ const OrdersTable = () => {
                         <option value={25}>25</option>
                         <option value={50}>50</option>
                         <option value={100}>100</option>
-                        <option value={250}>250</option>
-                        <option value={500}>500</option>
                     </select>
                 </div>
             </div>
@@ -129,6 +128,13 @@ const OrdersTable = () => {
                                     >
                                         Total
                                     </TableCell>
+                                    {/* NEW: Payment Status Header */}
+                                    <TableCell
+                                        isHeader
+                                        className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                                    >
+                                        Payment Status
+                                    </TableCell>
                                     <TableCell
                                         isHeader
                                         className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
@@ -140,20 +146,28 @@ const OrdersTable = () => {
                             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                                 {data?.data.map((order) => (
                                     <TableRow key={order.id}>
-                                        <TableCell className="px-5 py-4 text-gray-800 text-start dark:text-white/90">
+                                        <TableCell className="w-24 px-5 py-4 text-gray-800 text-start dark:text-white/90">
                                             {order.id}
                                         </TableCell>
-                                        <TableCell className="px-4 py-3 text-gray-500 text-start dark:text-gray-400">
+                                        <TableCell className="w-48 px-4 py-3 text-gray-500 text-start dark:text-gray-400">
                                             {order.name}<br />
                                             {order.email}
                                         </TableCell>
-                                        <TableCell className="px-4 py-3 text-gray-500 text-start dark:text-gray-400">
+                                        <TableCell className="w-32 px-4 py-3 text-gray-500 text-start dark:text-gray-400">
                                             {order.orderDate}
                                         </TableCell>
-                                        <TableCell className="px-4 py-3 text-gray-500 text-start dark:text-gray-400">
+                                        <TableCell className="w-32 px-4 py-3 text-gray-500 text-start dark:text-gray-400">
                                             {order.total}
                                         </TableCell>
-                                        <TableCell className="px-5 py-4 text-start">
+                                        {/* NEW: Payment Status Cell */}
+                                        <TableCell className="w-40 px-4 py-3 text-start">
+                                            {order.hasPayment === true ? (
+                                                <CheckCircle size={20} className="text-green-500" />
+                                            ) : (
+                                                <XCircle size={20} className="text-red-500" />
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="w-28 px-5 py-4 text-start">
                                             <Button variant="primary" size="sm" onClick={() => handleViewDetails(order.id)}>
                                                 <Eye size={16} />
                                             </Button>

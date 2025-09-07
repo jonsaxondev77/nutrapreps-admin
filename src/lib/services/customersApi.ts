@@ -9,6 +9,7 @@ interface User {
   id: string;
   firstName: string;
   lastName: string;
+  address: any;
   email: string;
   status: string;
 }
