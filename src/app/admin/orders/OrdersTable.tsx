@@ -1,12 +1,9 @@
 'use client';
 
 import { useGetOrdersQuery } from '@/lib/services/ordersApi';
-import { Order, OrderListResponse, OrderStatus } from '@/types/orders';
-import { PagedResponse } from '@/types/global';
 import React, { useState } from 'react';
 import Pagination from '@/components/tables/Pagination';
-import { format } from 'date-fns';
-import { CheckCircle, Eye, Loader, XCircle } from 'lucide-react';
+import { CheckCircle, Eye, XCircle } from 'lucide-react';
 import OrderDetailsModal from './OrderDetailsModal';
 import Button from '@/components/ui/button/Button';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
@@ -29,7 +26,7 @@ const getPreviousSunday = (date: Date) => {
 const OrdersTable = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedDate, setSelectedDate] = useState(getPreviousSunday(new Date()));
-    const [pageSize, setPageSize] = useState(10); // NEW: State for page size
+    const [pageSize, setPageSize] = useState(10);
 
     const weekStartISO = new Date(Date.UTC(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate())).toISOString();
 
@@ -55,7 +52,7 @@ const OrdersTable = () => {
     // NEW: Handle page size change
     const handlePageSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setPageSize(Number(event.target.value));
-        setCurrentPage(1); // Reset to page 1 when page size changes
+        setCurrentPage(1);
     };
 
 
@@ -151,7 +148,8 @@ const OrdersTable = () => {
                                         </TableCell>
                                         <TableCell className="w-48 px-4 py-3 text-gray-500 text-start dark:text-gray-400">
                                             {order.name}<br />
-                                            {order.email}
+                                            {order.email}<br/>
+                                            {order.telephone}
                                         </TableCell>
                                         <TableCell className="w-32 px-4 py-3 text-gray-500 text-start dark:text-gray-400">
                                             {order.orderDate}

@@ -52,7 +52,15 @@ export const customersApi = createApi({
         }),
         invalidatesTags: ["Customers"],
     }),
+    createStripeCustomer: builder.mutation<void, { accountId: number; name: string; email: string }>({
+        query: ({accountId, name, email}) => ({
+            url: `accounts/update-stripe-customer`,
+            method: "PUT",
+            body: {id: accountId, name, email}
+        }),
+        invalidatesTags: ["Customers"],
+    }),
   }),
 });
 
-export const { useGetCustomersQuery, useGetPendingUsersQuery, useUpdateCustomerMutation, useAssignRouteAndActivateMutation } = customersApi;
+export const { useGetCustomersQuery, useGetPendingUsersQuery, useUpdateCustomerMutation, useAssignRouteAndActivateMutation, useCreateStripeCustomerMutation } = customersApi;

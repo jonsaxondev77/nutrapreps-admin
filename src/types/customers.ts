@@ -39,4 +39,5 @@ export interface Account {
   role: Role;
   created: string;
   updated?: string;
+  stripeCustomerId?: string;
 }

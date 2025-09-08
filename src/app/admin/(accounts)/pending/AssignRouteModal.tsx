@@ -14,15 +14,16 @@ interface AssignRouteModalProps {
 }
 
 export default function AssignRouteModal({ isOpen, onClose, accountId }: AssignRouteModalProps) {
-  const [selectedRoute, setSelectedRoute] = useState<number | null>(null);
+  const [selectedRoute, setSelectedRoute] = useState<number | ''>('');
   const { data: routes, isLoading: isLoadingRoutes } = useGetAllRoutesQuery({pageNumber: 1, pageSize: 20});
   const [assignRoute, { isLoading: isAssigning }] = useAssignRouteAndActivateMutation();
 
-  const routeOptions = routes?.data.map(route => ({ value: route.id, label: route.name })) || [];
+ const routeOptions = routes?.data.map(route => ({ value: String(route.id), label: route.name })) || [];
+
 
   const handleAssign = async () => {
     if (selectedRoute) {
-      await assignRoute({ accountId, routeId: selectedRoute });
+      await assignRoute({ accountId, routeId: Number(selectedRoute) });
       onClose();
     }
   };
@@ -38,6 +39,7 @@ export default function AssignRouteModal({ isOpen, onClose, accountId }: AssignR
           <SelectCustom
             id="route"
             options={routeOptions}
+            value={selectedRoute}
             onChange={(e) => setSelectedRoute(Number(e.target.value))}
             disabled={isLoadingRoutes}
           />

@@ -51,6 +51,7 @@ export interface OrderListResponse {
   id: number;
   name: string;
   email: string;
+  telephone: string;
   total: number;
   hasPayment: boolean;
   orderDate: string;

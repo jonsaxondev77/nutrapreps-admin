@@ -26,8 +26,16 @@ async function readRequestBody(request: NextRequest): Promise<any | null> {
 }
 
 // Helper function to handle responses from the upstream API, including no-content status codes
+// src/app/api/proxy/[...path]/route.ts
 async function handleResponse(response: Response) {
   const isNoContent = response.status === 204 || response.headers.get('content-length') === '0';
+  const contentType = response.headers.get('content-type');
+
+  // Handle successful file downloads (e.g., Excel files)
+  if (response.ok && contentType && contentType.includes('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')) {
+    const headers = new Headers(response.headers);
+    return new NextResponse(response.body, { status: response.status, headers });
+  }
 
   if (!response.ok && !isNoContent) {
     try {

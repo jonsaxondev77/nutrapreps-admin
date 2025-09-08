@@ -35,7 +35,8 @@ const navItems: NavItem[] = [
     icon: <UserIcon />,
     subItems: [
       { name: "Customers", path: "/admin/customers", pro: false },
-      { name: "Pending Customers", path: "/admin/pending", pro: false }
+      { name: "Pending Customers", path: "/admin/pending", pro: false },
+      { name: "Stripe Anomalies", path: "/admin/stripe-anomalies", pro: false }
     ]
   },
   {
