@@ -6,8 +6,6 @@ export default function ViewPlansPage() {
 
     const downloadApiUrl = process.env.API_URL || "https://apinutrapreps.azurewebsites.net";
 
-    console.log(downloadApiUrl);
-
     return (
         <>
             <Suspense>
