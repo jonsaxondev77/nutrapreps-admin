@@ -148,7 +148,7 @@ export default function ViewPlansClient({downloadApiUrl } :  { downloadApiUrl: s
                         console.log(`Attempting to download from: ${downloadUrl}`);
                         window.open(downloadUrl, '_blank');
                         refetch();
-                    }, 1000);
+                    }, 60000);
                 }
             );
             return cleanup;
