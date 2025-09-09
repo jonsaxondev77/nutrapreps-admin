@@ -476,7 +476,8 @@ span.flatpickr-weekday,
 }
 
 .flatpickr-calendar.static {
-  @apply right-0;
+  /* Remove right-0 and center the calendar instead */
+  @apply left-1/2 -translate-x-1/2;
 }
 
 .fc .fc-view-harness {

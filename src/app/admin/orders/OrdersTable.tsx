@@ -3,7 +3,7 @@
 import { useGetOrdersQuery } from '@/lib/services/ordersApi';
 import React, { useState } from 'react';
 import Pagination from '@/components/tables/Pagination';
-import { CheckCircle, Eye, XCircle } from 'lucide-react';
+import { CheckCircle, Eye, XCircle, Download } from 'lucide-react';
 import OrderDetailsModal from './OrderDetailsModal';
 import Button from '@/components/ui/button/Button';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
@@ -11,6 +11,8 @@ import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import DatePickerCustom from '@/components/form/date-picker-custom';
 import TableSkeleton from '@/components/tables/TableSkeleton';
 import ErrorAlert from '@/components/common/ErrorAlert';
+import { Dropdown } from '@/components/ui/dropdown/Dropdown';
+import { DropdownItem } from '@/components/ui/dropdown/DropdownItem';
 
 const getPreviousSunday = (date: Date) => {
     const d = new Date(date);
@@ -27,6 +29,7 @@ const OrdersTable = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedDate, setSelectedDate] = useState(getPreviousSunday(new Date()));
     const [pageSize, setPageSize] = useState(10);
+    const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
 
     const weekStartISO = new Date(Date.UTC(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate())).toISOString();
 
@@ -55,6 +58,57 @@ const OrdersTable = () => {
         setCurrentPage(1);
     };
 
+    const toggleExportDropdown = () => {
+      setIsExportDropdownOpen(prev => !prev);
+    };
+
+    const closeExportDropdown = () => {
+      setIsExportDropdownOpen(false);
+    };
+
+    const exportToCsv = (filteredOrders: any[], filename: string) => {
+        if (!filteredOrders || filteredOrders.length === 0) return;
+
+        const headers = ['Order ID', 'Customer Name', 'Email', 'Telephone', 'Total', 'Payment Status'];
+        const rows = filteredOrders.map(order => [
+            order.id,
+            order.name,
+            order.email,
+            order.telephone,
+            order.total,
+            order.hasPayment ? 'Paid' : 'Unpaid',
+        ]);
+
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(e => e.join(',')),
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    };
+    
+    const handleExportPaid = () => {
+      const paidOrders = data?.data.filter(order => order.hasPayment) || [];
+      exportToCsv(paidOrders, 'paid_orders.csv');
+      closeExportDropdown();
+    };
+
+    const handleExportUnpaid = () => {
+      const unpaidOrders = data?.data.filter(order => !order.hasPayment) || [];
+      exportToCsv(unpaidOrders, 'unpaid_orders.csv');
+      closeExportDropdown();
+    };
+
 
     if (isLoading) {
         return <TableSkeleton columns={5} rows={10} />;
@@ -69,7 +123,7 @@ const OrdersTable = () => {
         <>
             <PageBreadcrumb pageTitle="Orders" />
             <div className="mb-4 flex flex-col sm:flex-row sm:justify-between items-start sm:items-end">
-                <div className="mb-4 sm:mb-0">
+                <div className="w-full sm:w-auto mb-4 sm:mb-0">
                     <DatePickerCustom
                         id="weekstart-date-picker"
                         selected={selectedDate}
@@ -77,27 +131,48 @@ const OrdersTable = () => {
                         enableSundaysOnly={true}
                     />
                 </div>
-                {/* Page Size Dropdown */}
-                <div className="flex items-center space-x-2">
-                    <label htmlFor="pageSizeSelect" className="text-gray-600 dark:text-gray-300">
-                        Items per page:
-                    </label>
-                    <select
-                        id="pageSizeSelect"
-                        value={pageSize}
-                        onChange={handlePageSizeChange}
-                        className="rounded-md border border-gray-300 bg-white px-2 py-1 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                    >
-                        <option value={10}>10</option>
-                        <option value={25}>25</option>
-                        <option value={50}>50</option>
-                        <option value={100}>100</option>
-                        <option value={250}>250</option>
-                        <option value={500}>500</option>
-                        <option value={1000}>1000</option>
-                        <option value={1500}>1500</option>
-                        <option value={2000}>2000</option>
-                    </select>
+                {/* Page Size Dropdown and Export Buttons */}
+                <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end sm:space-x-2">
+                    <div className="relative">
+                        <Button 
+                            size="sm" 
+                            variant="primary" 
+                            startIcon={<Download size={16} />} 
+                            onClick={toggleExportDropdown}
+                            className='dropdown-toggle'
+                        >
+                            Export
+                        </Button>
+                        <Dropdown isOpen={isExportDropdownOpen} onClose={closeExportDropdown} className="w-40 mt-1">
+                            <DropdownItem onClick={handleExportPaid}>
+                                Export Paid
+                            </DropdownItem>
+                            <DropdownItem onClick={handleExportUnpaid}>
+                                Export Unpaid
+                            </DropdownItem>
+                        </Dropdown>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <label htmlFor="pageSizeSelect" className="text-gray-600 dark:text-gray-300">
+                            Items per page:
+                        </label>
+                        <select
+                            id="pageSizeSelect"
+                            value={pageSize}
+                            onChange={handlePageSizeChange}
+                            className="rounded-md border border-gray-300 bg-white px-2 py-1 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                        >
+                            <option value={10}>10</option>
+                            <option value={25}>25</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                            <option value={250}>250</option>
+                            <option value={500}>500</option>
+                            <option value={1000}>1000</option>
+                            <option value={1500}>1500</option>
+                            <option value={2000}>2000</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
