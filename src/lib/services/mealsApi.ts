@@ -21,6 +21,7 @@ interface Meal {
   supplement: number | null;
   stripeProductId?: string | null;
   imageUrl?: string | null;
+  spiceRating?: number | null;
 }
 
 interface PaginatedMeals {

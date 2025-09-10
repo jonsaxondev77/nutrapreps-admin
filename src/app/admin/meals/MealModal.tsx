@@ -1,3 +1,4 @@
+// src/app/admin/meals/MealModal.tsx
 "use client";
 import React, { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/modal";
@@ -27,6 +28,7 @@ interface Meal {
     supplement: number | null;
     stripeProductId?: string;
     imageUrl?: string | null;
+    spiceRating?: number | null; // Updated type definition to include spiceRating
 }
 
 interface MealModalProps {
@@ -72,6 +74,7 @@ export default function MealModal({
                     allergies: meal.allergies || "",
                     supplement: meal.supplement || 0,
                     imageUrl: meal.imageUrl || "",
+                    spiceRating: meal.spiceRating || null, // Added spiceRating here
                 });
             } else {
                 reset({
@@ -83,7 +86,8 @@ export default function MealModal({
                     fat: "",
                     allergies: "",
                     supplement: 0,
-                    imageUrl: ""
+                    imageUrl: "",
+                    spiceRating: null, // Added spiceRating here
                 });
             }
         }
@@ -271,7 +275,19 @@ export default function MealModal({
                                 hint={errors.allergies?.message}
                             />
                         </div>
-                        <div className="md:col-span-2">
+                        <div>
+                            <Label htmlFor="spiceRating">Spice Rating (1-5)</Label>
+                            <InputFieldCustom
+                                id="spiceRating"
+                                type="number"
+                                {...register("spiceRating", { valueAsNumber: true })}
+                                min={1}
+                                max={5}
+                                error={!!errors.spiceRating}
+                                hint={errors.spiceRating?.message}
+                            />
+                        </div>
+                        <div>
                             <Label htmlFor="supplement">Supplement Price</Label>
                             <InputFieldCustom
                                 id="supplement"

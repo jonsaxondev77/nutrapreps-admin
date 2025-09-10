@@ -57,4 +57,10 @@ export interface OrderListResponse {
   orderDate: string;
 }
 
+export interface IMealOrderCount {
+    mealName: string;
+    mealOptionId: number;
+    mealCount: number;
+}
+
 export interface OrderListResponse extends PagedResponse<OrderListResponse> { }

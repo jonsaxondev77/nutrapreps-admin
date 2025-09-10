@@ -7,6 +7,7 @@ export const mealSchema = z.object({
   carbs: z.string().regex(/^\d+(\.\d+)?g$/, "Carbs must be in the format 'XXg' or 'XX.Xg'"),
   protein: z.string().regex(/^\d+(\.\d+)?g$/, "Protein must be in the format 'XXg' or 'XX.Xg'"),
   fat: z.string().regex(/^\d+(\.\d+)?g$/, "Fat must be in the format 'XXg' or 'XX.Xg'"),
+  spiceRating: z.number().int().min(1).max(5).nullable().optional(),
   allergies: z.string().nullable(),
   supplement: z.number().nullable(),
   imageUrl: z.string().optional().nullable()

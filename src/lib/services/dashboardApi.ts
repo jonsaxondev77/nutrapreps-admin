@@ -2,6 +2,7 @@ import { ChartDataPoint, DashboardData, DemographicDataPoint, RecentOrder, Stati
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { getSession } from 'next-auth/react';
 import { baseQueryWithRedirect } from './baseQuery';
+import { IMealOrderCount } from '@/types/orders';
 
 export const dashboardApi = createApi({
   reducerPath: 'dashboardApi',
@@ -20,8 +21,11 @@ export const dashboardApi = createApi({
     }),
     getDemographicsData: builder.query<DemographicDataPoint[], void>({
       query: () => 'dashboard/demographics',
-    })
+    }),
+    getMealOrderCountForDate: builder.query<IMealOrderCount[], { targetDate: string }>({
+        query: ({ targetDate }) => `order/meal-order-count?targetDate=${targetDate}`,
+    }),
   }),
 });
 
-export const { useGetDashboardDataQuery, useGetMonthlySalesDataQuery, useGetStatisticsChartDataQuery, useGetDemographicsDataQuery } = dashboardApi;
+export const { useGetDashboardDataQuery, useGetMonthlySalesDataQuery, useGetStatisticsChartDataQuery, useGetDemographicsDataQuery, useGetMealOrderCountForDateQuery } = dashboardApi;

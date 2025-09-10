@@ -10,6 +10,7 @@ import { useGetDashboardDataQuery } from "@/lib/services/dashboardApi";
 import { DashboardSkeleton } from "@/components/ecommerce/Skeletons";
 import ErrorAlert from "@/components/common/ErrorAlert";
 import OrderingStatusCard from "./OrderingStatusCard";
+import MealOrderCountTable from "@/components/dashboard/MealOrderCountTable";
 
 
 export default function DashboardClient() {
@@ -42,8 +43,12 @@ export default function DashboardClient() {
                 <DemographicCard recentUsers={data.recentUsers} />
             </div>
             <div className="col-span-12 xl:col-span-7">
-                <RecentOrders recentOrders={data.recentOrders} />
+                <div className="mb-5">
+                    <RecentOrders recentOrders={data.recentOrders} />
+                </div>
+                <MealOrderCountTable />
             </div>
+           
         </div>
     );
 }
