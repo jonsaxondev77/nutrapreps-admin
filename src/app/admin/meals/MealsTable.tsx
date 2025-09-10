@@ -26,6 +26,7 @@ interface Meal {
   protein: string;
   calories: string;
   allergies: string | null;
+  spiceRating: number | null;
   supplement: number | null;
   stripeProductId: string | null;
 }

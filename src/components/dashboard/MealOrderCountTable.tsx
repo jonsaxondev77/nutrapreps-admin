@@ -37,6 +37,7 @@ const MealOrderCountTable = () => {
                     id="meal-count-date-picker"
                     selected={selectedDate}
                     onChange={handleDateChange}
+                    enableSundaysAndWednesdays={true}
                 />
             </div>
             

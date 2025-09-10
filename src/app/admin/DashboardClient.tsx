@@ -46,9 +46,7 @@ export default function DashboardClient() {
                 <div className="mb-5">
                     <RecentOrders recentOrders={data.recentOrders} />
                 </div>
-                <MealOrderCountTable />
-            </div>
-           
+            </div>           
         </div>
     );
 }

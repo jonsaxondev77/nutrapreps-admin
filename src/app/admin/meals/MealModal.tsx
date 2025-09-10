@@ -281,8 +281,8 @@ export default function MealModal({
                                 id="spiceRating"
                                 type="number"
                                 {...register("spiceRating", { valueAsNumber: true })}
-                                min={1}
-                                max={5}
+                                min={0}
+                                max={4}
                                 error={!!errors.spiceRating}
                                 hint={errors.spiceRating?.message}
                             />

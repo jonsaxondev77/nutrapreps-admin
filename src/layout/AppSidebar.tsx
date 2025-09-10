@@ -44,7 +44,8 @@ const navItems: NavItem[] = [
     icon: <CalenderIcon />,
     subItems: [
       { name: "Create Plans", path: "/admin/create-plans", pro: false },
-      { name: "View Plans", path: "/admin/view-plans", pro: false }
+      { name: "View Plans", path: "/admin/view-plans", pro: false },
+      { name: "Counts", path: "/admin/counts", pro: false}
     ]
   },
   {
