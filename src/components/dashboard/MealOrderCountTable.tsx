@@ -7,15 +7,24 @@ import { useGetMealOrderCountForDateQuery } from '@/lib/services/dashboardApi';
 import TableSkeleton from '@/components/tables/TableSkeleton';
 import ErrorAlert from '@/components/common/ErrorAlert';
 
+
 const formatDateForApi = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  return `${year}-${month}-${day} 00:00:00.0000000`;
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+const getInitialValidDate = () => {
+    let date = new Date();
+    while (date.getDay() !== 0 && date.getDay() !== 3) {
+        date.setDate(date.getDate() + 1);
+    }
+    return date;
 };
 
 const MealOrderCountTable = () => {
-    const [selectedDate, setSelectedDate] = useState(formatDateForApi(new Date()));
+    const [selectedDate, setSelectedDate] = useState(formatDateForApi(getInitialValidDate()));
 
     const { data, error, isLoading } = useGetMealOrderCountForDateQuery({
         targetDate: selectedDate

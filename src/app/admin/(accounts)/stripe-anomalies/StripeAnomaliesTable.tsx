@@ -16,6 +16,7 @@ export default function StripeAnomaliesTable() {
   const { data, error, isLoading } = useGetCustomersQuery({
     pageNumber: 1,
     pageSize: pageSize,
+    status: 'Active'
   });
   
   const [isModalOpen, setIsModalOpen] = useState(false);

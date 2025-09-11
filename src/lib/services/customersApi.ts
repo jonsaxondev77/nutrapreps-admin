@@ -28,8 +28,8 @@ export const customersApi = createApi({
   baseQuery: baseQueryWithRedirect,
   tagTypes: ['Customers'],
   endpoints: (builder) => ({
-    getCustomers: builder.query<PagedResponse<Account>, { pageNumber: number; pageSize: number }>({
-      query: ({ pageNumber, pageSize }) => `accounts?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+    getCustomers: builder.query<PagedResponse<Account>, { pageNumber: number; pageSize: number,status?: string  }>({
+      query: ({ pageNumber, pageSize, status }) => `accounts/bystatus?status=${status}&pageNumber=${pageNumber}&pageSize=${pageSize}`,
       providesTags: ["Customers"],
     }),
     getPendingUsers: builder.query<PaginatedUsers, { pageNumber: number; pageSize: number }>({

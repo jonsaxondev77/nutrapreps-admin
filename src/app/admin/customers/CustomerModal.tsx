@@ -33,6 +33,7 @@ export default function CustomerModal({ isOpen, onClose, customer }: CustomerMod
 
   const statusOptions = [
     { value: AccountStatus.Active, label: "Active" },
+    { value: AccountStatus.InfoCompleted, label: "Info Completed"},
     { value: AccountStatus.Inactive, label: "Inactive" },
   ];
 
