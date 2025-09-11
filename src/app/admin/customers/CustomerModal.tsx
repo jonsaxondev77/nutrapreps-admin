@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
 import InputFieldCustom from "@/components/form/input/InputFieldCustom";
@@ -11,6 +11,7 @@ import { customerSchema, type CustomerFormData } from "@/lib/validators/customer
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Account, AccountStatus, Address, Location } from "@/types/customers";
+import { useGetAllRoutesQuery } from "@/lib/services/routesApi";
 
 interface CustomerModalProps {
   isOpen: boolean;
@@ -19,7 +20,11 @@ interface CustomerModalProps {
 }
 
 export default function CustomerModal({ isOpen, onClose, customer }: CustomerModalProps) {
+  const [selectedRoute, setSelectedRoute] = useState<number | ''>('');
   const [updateCustomer, { isLoading: isUpdating }] = useUpdateCustomerMutation();
+  const { data: routes, isLoading: isLoadingRoutes } = useGetAllRoutesQuery({ pageNumber: 1, pageSize: 20 });
+
+  const routeOptions = routes?.data.map(route => ({ value: String(route.id), label: route.name })) || [];
 
   const {
     register,
@@ -33,7 +38,7 @@ export default function CustomerModal({ isOpen, onClose, customer }: CustomerMod
 
   const statusOptions = [
     { value: AccountStatus.Active, label: "Active" },
-    { value: AccountStatus.InfoCompleted, label: "Info Completed"},
+    { value: AccountStatus.InfoCompleted, label: "Info Completed" },
     { value: AccountStatus.Inactive, label: "Inactive" },
   ];
 
@@ -55,6 +60,7 @@ export default function CustomerModal({ isOpen, onClose, customer }: CustomerMod
         telephone: customer.telephone || "",
         allergens: customer.allergens || "",
         status: customer.status || AccountStatus.Active,
+        routeId: customer.routeId || 0,
         address: {
           line1: customer.address?.line1 || "",
           line2: customer.address?.line2 || "",
@@ -67,13 +73,14 @@ export default function CustomerModal({ isOpen, onClose, customer }: CustomerMod
           longitude: customer.location?.longitude,
         },
       });
+      setSelectedRoute(customer.routeId || ''); 
     }
   }, [customer, isOpen, reset]);
 
   const onSubmit = async (data: CustomerFormData) => {
     if (!customer) return;
     try {
-      await updateCustomer({ id: customer.id, ...data }).unwrap();
+      await updateCustomer({ id: customer.id, ...data, routeId: selectedRoute }).unwrap();
       onClose();
     } catch (error) {
       console.error("Failed to update customer:", error);
@@ -108,6 +115,17 @@ export default function CustomerModal({ isOpen, onClose, customer }: CustomerMod
               <div><Label htmlFor="location.longitude">Longitude</Label><InputFieldCustom id="location.longitude" type="number" step="any" {...register("location.longitude", { valueAsNumber: true })} error={!!errors.location?.longitude} hint={errors.location?.longitude?.message} disabled /></div>
             </div>
             <div><Label htmlFor="address.safePlace">Safe Place Instructions</Label><InputFieldCustom id="address.safePlace" {...register("address.safePlace")} error={!!errors.address?.safePlace} hint={errors.address?.safePlace?.message} /></div>
+
+            <div>
+              <Label htmlFor="route">Route</Label>
+              <SelectCustom
+                id="route"
+                options={routeOptions}
+                value={selectedRoute}
+                onChange={(e) => setSelectedRoute(Number(e.target.value))}
+                disabled={isLoadingRoutes}
+              />
+            </div>
 
             <hr className="dark:border-strokedark" />
 

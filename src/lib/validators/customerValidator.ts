@@ -23,6 +23,7 @@ export const customerSchema = z.object({
   status: z.nativeEnum(AccountStatus),
   address: addressSchema,
   location: locationSchema,
+  routeId: z.number()
 });
 
 export type CustomerFormData = z.infer<typeof customerSchema>;

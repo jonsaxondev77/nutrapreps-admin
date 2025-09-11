@@ -1,3 +1,5 @@
+// src/app/admin/customers/CustomersTable.tsx
+
 "use client";
 import React, { useState } from "react";
 import { useGetCustomersQuery } from "@/lib/services/customersApi";
@@ -10,15 +12,22 @@ import CustomerModal from "./CustomerModal";
 import { Account, AccountStatus } from "@/types/customers";
 import TableSkeleton from "@/components/tables/TableSkeleton";
 import ErrorAlert from "@/components/common/ErrorAlert";
+import InputFieldCustom from "@/components/form/input/InputFieldCustom";
+import { useDebounce } from "@/hooks/useDebounce";
 
 export default function CustomersTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [statusFilter, setStatusFilter] = useState<string>('Active');
-  const { data, error, isLoading } = useGetCustomersQuery({
+  const [statusFilter, setStatusFilter] = useState<string>('All');
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  
+  const { data, error, isLoading, isFetching } = useGetCustomersQuery({
     pageNumber: currentPage,
     pageSize: pageSize,
-    status: statusFilter === 'All' ? undefined : statusFilter,
+    status: statusFilter,
+    searchTerm: debouncedSearchTerm,
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -41,7 +50,7 @@ export default function CustomersTable() {
 
   const handlePageSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setPageSize(Number(event.target.value));
-    setCurrentPage(1); // Reset to page 1 when page size changes
+    setCurrentPage(1);
   };
 
   const handleStatusFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -49,32 +58,51 @@ export default function CustomersTable() {
     setCurrentPage(1);
   };
 
+  const handleClearSearch = () => {
+    setSearchTerm('');
+  };
+  
   if (isLoading) {
-    return <TableSkeleton columns={4} rows={pageSize} />;
+    return <TableSkeleton columns={4} rows={10} />;
   }
 
   if (error) {
     return <ErrorAlert error={error} title="Error loading customers" />;
   }
 
+  const customersToDisplay = data?.data || [];
+
   return (
     <>
       <PageBreadcrumb pageTitle="Customers" />
       <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-end space-y-4 sm:space-y-0 sm:space-x-4">
-        <div className="flex space-x-2">
-          <div className="w-40">
-            <label htmlFor="statusFilter" className="sr-only">Status Filter</label>
-            <select
-                id="statusFilter"
-                value={statusFilter}
-                onChange={handleStatusFilterChange}
-                className="rounded-md border border-gray-300 bg-white px-2 py-1 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-            >
-                {statusOptions.map(option => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-            </select>
-          </div>
+        <div className="flex w-full sm:w-auto flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+           
+            <div className="w-full sm:w-60">
+                <InputFieldCustom
+                    id="search"
+                    type="text"
+                    placeholder="Search by name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onClear={handleClearSearch}
+                    isFetching={isFetching}
+                />
+               
+            </div>
+             <div>
+                <label htmlFor="statusFilter" className="sr-only">Status Filter</label>
+                <select
+                    id="statusFilter"
+                    value={statusFilter}
+                    onChange={handleStatusFilterChange}
+                    className="rounded-md border border-gray-300 bg-white px-2 py-1 dark:border-gray-700 dark:bg-gray-800 dark:text-white h-11 w-full sm:w-40"
+                >
+                    {statusOptions.map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                </select>
+            </div>
         </div>
         <div className="flex items-center space-x-2">
             <label htmlFor="pageSizeSelect" className="text-gray-600 dark:text-gray-300">
@@ -110,7 +138,7 @@ export default function CustomersTable() {
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                {data?.data.map((customer) => (
+                {customersToDisplay.map((customer) => (
                   <TableRow key={customer.id}>
                     <TableCell className="px-5 py-4 text-gray-800 text-start dark:text-white/90">{`${customer.firstName} ${customer.lastName}`}</TableCell>
                     <TableCell className="px-5 py-4 text-gray-800 text-start dark:text-white/90">{customer.email}</TableCell>

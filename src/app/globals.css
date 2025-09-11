@@ -766,3 +766,28 @@ span.flatpickr-weekday,
   scrollbar-width: thin;
   scrollbar-color: #555 #333; /* thumb color track color */
 }
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Add this to your existing CSS file */
+
+/* A simple transition for a smooth effect on focus or glow */
+.transition-input {
+  transition: box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out;
+}
+
+/* The glowing effect for the search input */
+.shadow-input-glow {
+  box-shadow: 0 0 0 3px rgba(59, 246, 159, 0.5); /* A soft blue glow */
+}
