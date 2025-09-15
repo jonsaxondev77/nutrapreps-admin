@@ -87,7 +87,7 @@ export default function MealModal({
                     allergies: "",
                     supplement: 0,
                     imageUrl: "",
-                    spiceRating: null, // Added spiceRating here
+                    spiceRating: 0
                 });
             }
         }

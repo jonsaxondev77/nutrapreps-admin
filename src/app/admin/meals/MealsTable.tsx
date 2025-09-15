@@ -35,7 +35,7 @@ export default function MealsTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const { data, error, isLoading } = useGetAllMealsQuery({
     pageNumber: currentPage,
-    pageSize: 10,
+    pageSize: 500,
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
