@@ -7,7 +7,7 @@ declare module 'next-auth' {
   interface Session {
     user: {
       id: string;
-      role: 'admin' | 'user';
+      role: 'Admin' | 'User';
       status: AccountStatus;
       jwtToken: string;
       refreshToken: string;

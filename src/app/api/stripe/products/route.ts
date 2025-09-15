@@ -1,70 +1,85 @@
-import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
+import { NextResponse } from 'next/server';
+import Stripe from 'stripe';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../auth/[...nextauth]/authOptions';
 
-export async function POST(req: NextRequest) {
-  if (!process.env.STRIPE_SECRET_KEY) {
-      return NextResponse.json({ error: "Stripe secret key is not configured." }, { status: 500 });
-  }
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {});
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripe = new Stripe(stripeSecretKey!, { apiVersion: '2024-06-20' });
 
-  try {
-    const { productData } = await req.json();
+export async function POST(request: Request) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session || session.user.role !== 'Admin') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
-    if (!productData) {
-      return NextResponse.json({ error: "Product data is required." }, { status: 400 });
+        const { productData } = await request.json();
+        const product = await stripe.products.create({
+            name: productData.name,
+            default_price_data: {
+                unit_amount: Math.round(productData.supplement * 100),
+                currency: 'gbp'
+            },
+        });
+
+        return NextResponse.json({ product });
+    } catch (error) {
+        console.error('Stripe API Error:', error);
+        return NextResponse.json({ error: 'Failed to create Stripe product' }, { status: 500 });
     }
-
-    const product = await stripe.products.create({
-      name: productData.name,
-      description: productData.description,
-      default_price_data: {
-        currency: "gbp",
-        unit_amount: Math.round(productData.supplement * 100),
-      },
-    });
-
-    return NextResponse.json({ product });
-  } catch (error) {
-    console.error("Error creating Stripe product:", error);
-    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
-  }
 }
 
-export async function PUT(req: NextRequest) {
-  if (!process.env.STRIPE_SECRET_KEY) {
-      return NextResponse.json({ error: "Stripe secret key is not configured." }, { status: 500 });
-  }
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {});
+export async function PUT(request: Request) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session || session.user.role !== 'Admin') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
-  try {
-    const { productData } = await req.json();
+        const { productData } = await request.json();
+        const product = await stripe.products.update(productData.stripeProductId, {
+            name: productData.name,
+        });
 
-    if (!productData || !productData.stripeProductId) {
-      return NextResponse.json({ error: "Product data with Stripe Product ID is required." }, { status: 400 });
+        const prices = await stripe.prices.list({ product: product.id });
+        if (prices.data.length > 0) {
+            await stripe.prices.update(prices.data[0].id, {
+                active: false,
+            });
+        }
+        await stripe.prices.create({
+            product: product.id,
+            unit_amount: Math.round(productData.supplement * 100),
+            currency: 'gbp'
+        });
+
+        return NextResponse.json({ product });
+    } catch (error) {
+        console.error('Stripe API Error:', error);
+        return NextResponse.json({ error: 'Failed to update Stripe product' }, { status: 500 });
     }
+}
 
-    const product = await stripe.products.retrieve(productData.stripeProductId);
-    const oldPriceId = product.default_price as string | null;
+export async function DELETE(request: Request) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session || session.user.role !== 'Admin') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
-    const newPrice = await stripe.prices.create({
-      product: productData.stripeProductId,
-      unit_amount: Math.round(productData.supplement * 100),
-      currency: 'gbp',
-    });
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
 
-    const updatedProduct = await stripe.products.update(productData.stripeProductId, {
-      name: productData.name,
-      description: productData.description,
-      default_price: newPrice.id,
-    });
+        if (!id) {
+            return NextResponse.json({ error: 'Product ID is required.' }, { status: 400 });
+        }
 
-    if (oldPriceId) {
-      await stripe.prices.update(oldPriceId, { active: false });
+        await stripe.products.update(id, { active: false });
+
+        return new NextResponse(null, { status: 204 });
+
+    } catch (error) {
+        console.error('Stripe API Error:', error);
+        return NextResponse.json({ error: 'Failed to delete Stripe product' }, { status: 500 });
     }
-
-    return NextResponse.json({ product: updatedProduct });
-  } catch (error) {
-    console.error("Error updating Stripe product and price:", error);
-    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
-  }
 }

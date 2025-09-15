@@ -74,7 +74,7 @@ export default function MealModal({
                     allergies: meal.allergies || "",
                     supplement: meal.supplement || 0,
                     imageUrl: meal.imageUrl || "",
-                    spiceRating: meal.spiceRating || null, // Added spiceRating here
+                    spiceRating: meal.spiceRating ?? 0,
                 });
             } else {
                 reset({
@@ -114,7 +114,17 @@ export default function MealModal({
         try {
             if (mode === 'edit' && meal) {
                 let updatedMealData = { ...meal, ...data };
-                if (data.supplement && data.supplement > 0 && !meal.stripeProductId) {
+                
+                if (meal.stripeProductId && data.supplement === 0) {
+                    await fetch(`/api/stripe/products?id=${meal.stripeProductId}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                    });
+                    updatedMealData.stripeProductId = undefined;
+                }
+
+                else if (data.supplement && data.supplement > 0 && !meal.stripeProductId) {
+                    console.log("In Create Stripe Product");
                     const response = await fetch('/api/stripe/products', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -122,13 +132,16 @@ export default function MealModal({
                     });
                     const { product } = await response.json();
                     updatedMealData.stripeProductId = product.id;
-                } else if (meal.stripeProductId) {
+                }
+                else if (data.supplement && data.supplement > 0 && meal.stripeProductId) {
                     await fetch('/api/stripe/products', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ productData: { ...data, stripeProductId: meal.stripeProductId } }),
                     });
+                    updatedMealData.stripeProductId = meal.stripeProductId;
                 }
+
                 await updateMeal(updatedMealData).unwrap();
             } else { // Create mode
                 let stripeProductId = null;
@@ -143,8 +156,10 @@ export default function MealModal({
                 }
                 await createMeal({ ...data, stripeProductId }).unwrap();
             }
+            toast.success(mode === 'edit' ? "Meal updated successfully." : "Meal created successfully.");
             onClose();
         } catch (error) {
+            toast.error(`Failed to ${mode} meal.`);
             console.error(`Failed to ${mode} meal:`, error);
         }
     };
@@ -276,7 +291,7 @@ export default function MealModal({
                             />
                         </div>
                         <div>
-                            <Label htmlFor="spiceRating">Spice Rating (1-5)</Label>
+                            <Label htmlFor="spiceRating">Spice Rating (0-4)</Label>
                             <InputFieldCustom
                                 id="spiceRating"
                                 type="number"
