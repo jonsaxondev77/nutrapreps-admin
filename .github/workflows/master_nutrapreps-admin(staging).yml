@@ -25,7 +25,9 @@ jobs:
         run: |
           npm install
           npm run build
-          # Removed the --if-present flag for 'test' as it is not present in the package.json and would cause issues.
+          env:
+            STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+            NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -70,3 +72,4 @@ jobs:
           app-name: 'nutrapreps-admin'
           slot-name: 'Staging'
           package: .
+          
