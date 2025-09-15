@@ -13,8 +13,9 @@ import TableSkeleton from '@/components/tables/TableSkeleton';
 import ErrorAlert from '@/components/common/ErrorAlert';
 import { Dropdown } from '@/components/ui/dropdown/Dropdown';
 import { DropdownItem } from '@/components/ui/dropdown/DropdownItem';
+import SendWeeklyReminder from "@/components/orders/SendWeeklyReminder";
 
-const getPreviousSunday = (date: Date) => {
+const getSundayForDate = (date: Date) => {
     const d = new Date(date);
     d.setDate(d.getDate() - d.getDay());
     d.setHours(0, 0, 0, 0);
@@ -27,7 +28,7 @@ const getPreviousSunday = (date: Date) => {
 
 const OrdersTable = () => {
     const [currentPage, setCurrentPage] = useState(1);
-    const [selectedDate, setSelectedDate] = useState(getPreviousSunday(new Date()));
+    const [selectedDate, setSelectedDate] = useState(getSundayForDate(new Date()));
     const [pageSize, setPageSize] = useState(10);
     const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
 
@@ -48,7 +49,7 @@ const OrdersTable = () => {
     };
 
     const handleDateChange = (date: Date) => {
-        setSelectedDate(getPreviousSunday(date));
+        setSelectedDate(getSundayForDate(date));
         setCurrentPage(1);
     };
 
@@ -122,17 +123,10 @@ const OrdersTable = () => {
     return (
         <>
             <PageBreadcrumb pageTitle="Orders" />
-            <div className="mb-4 flex flex-col sm:flex-row sm:justify-between items-start sm:items-end">
-                <div className="w-full sm:w-auto mb-4 sm:mb-0">
-                    <DatePickerCustom
-                        id="weekstart-date-picker"
-                        selected={selectedDate}
-                        onChange={handleDateChange}
-                        enableSundaysOnly={true}
-                    />
-                </div>
-                {/* Page Size Dropdown and Export Buttons */}
-                <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end sm:space-x-2">
+            
+            {/* NEW: Action Bar */}
+            <div className="flex flex-col sm:flex-row sm:justify-end items-start sm:items-end sm:space-x-2 mb-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
+                <div className="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
                     <div className="relative">
                         <Button 
                             size="sm" 
@@ -152,6 +146,20 @@ const OrdersTable = () => {
                             </DropdownItem>
                         </Dropdown>
                     </div>
+                </div>
+            </div>
+
+            <div className="mb-4 flex flex-col sm:flex-row sm:justify-between items-start sm:items-end">
+                <div className="w-full sm:w-auto mb-4 sm:mb-0">
+                    <DatePickerCustom
+                        id="weekstart-date-picker"
+                        selected={selectedDate}
+                        onChange={handleDateChange}
+                        enableSundaysOnly={true}
+                    />
+                </div>
+                {/* Page Size Dropdown and Export Buttons */}
+                <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end sm:space-x-2">
                     <div className="flex items-center space-x-2">
                         <label htmlFor="pageSizeSelect" className="text-gray-600 dark:text-gray-300">
                             Items per page:

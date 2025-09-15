@@ -4,9 +4,10 @@ import OrdersTable from "./OrdersTable";
 const OrdersPage = () => {
   return (
     <>
-        <Suspense>
-          <OrdersTable />
-        </Suspense>
+      
+      <Suspense>
+        <OrdersTable />
+      </Suspense>
     </>
   );
 };
