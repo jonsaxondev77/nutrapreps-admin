@@ -25,7 +25,7 @@ jobs:
         run: |
           npm install
           npm run build
-          env:
+        env:
             STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
             NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
 
