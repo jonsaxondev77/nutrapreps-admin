@@ -39,10 +39,7 @@ export default function DashboardClient() {
             <div className="col-span-12">
                 <StatisticsChart />
             </div>
-            <div className="col-span-12 xl:col-span-5">
-                <DemographicCard recentUsers={data.recentUsers} />
-            </div>
-            <div className="col-span-12 xl:col-span-7">
+            <div className="col-span-12 xl:col-span-12">
                 <div className="mb-5">
                     <RecentOrders recentOrders={data.recentOrders} />
                 </div>
