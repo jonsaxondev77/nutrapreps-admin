@@ -1,8 +1,6 @@
-// src/app/admin/customers/CustomersTable.tsx
-
 "use client";
 import React, { useState } from "react";
-import { useGetCustomersQuery } from "@/lib/services/customersApi";
+import { useGetCustomersQuery, customersApi } from "@/lib/services/customersApi";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Pagination from "@/components/tables/Pagination";
@@ -14,6 +12,34 @@ import TableSkeleton from "@/components/tables/TableSkeleton";
 import ErrorAlert from "@/components/common/ErrorAlert";
 import InputFieldCustom from "@/components/form/input/InputFieldCustom";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useDispatch } from "react-redux";
+import { SheetIcon } from "lucide-react";
+import { AppDispatch } from "@/lib/store";
+
+// Re-usable helper function to convert an array of objects to a CSV string and trigger a download.
+const exportToCsv = (data: Account[], filename: string) => {
+  if (!data || data.length === 0) {
+    alert('No data to export.');
+    return;
+  }
+  const headers = ['firstName', 'lastName', 'telephone'];
+  const rows = data.map(customer => {
+    const values = headers.map(header => {
+      // @ts-ignore
+      const value = customer[header];
+      return typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value;
+    });
+    return values.join(',');
+  });
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 export default function CustomersTable() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -29,6 +55,8 @@ export default function CustomersTable() {
     status: statusFilter,
     searchTerm: debouncedSearchTerm,
   });
+
+  const dispatch = useDispatch<AppDispatch>();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Account | null>(null);
@@ -62,6 +90,31 @@ export default function CustomersTable() {
     setSearchTerm('');
   };
   
+  const handleExportActiveAccounts = async () => {
+    try {
+      // Use dispatch and the initiate method to call the API on demand
+      const { data: activeCustomersData } = await dispatch(
+        customersApi.endpoints.getCustomers.initiate({
+          pageNumber: 1,
+          pageSize: 100000, // Use a large number to get all records
+          status: AccountStatus.Active,
+          searchTerm: ''
+        })
+      ).unwrap();
+
+      console.log(activeCustomersData.length);
+      
+      if (activeCustomersData && activeCustomersData &&activeCustomersData.length > 0) {
+        exportToCsv(activeCustomersData, 'active_customers.csv');
+      } else {
+        alert('No active accounts found to export.');
+      }
+    } catch (err) {
+      console.error('Failed to fetch customers for export:', err);
+      alert('Failed to export customers.');
+    }
+  };
+
   if (isLoading) {
     return <TableSkeleton columns={4} rows={10} />;
   }
@@ -77,7 +130,7 @@ export default function CustomersTable() {
       <PageBreadcrumb pageTitle="Customers" />
       <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-end space-y-4 sm:space-y-0 sm:space-x-4">
         <div className="flex w-full sm:w-auto flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-           
+            
             <div className="w-full sm:w-60">
                 <InputFieldCustom
                     id="search"
@@ -88,7 +141,6 @@ export default function CustomersTable() {
                     onClear={handleClearSearch}
                     isFetching={isFetching}
                 />
-               
             </div>
              <div>
                 <label htmlFor="statusFilter" className="sr-only">Status Filter</label>
@@ -103,6 +155,11 @@ export default function CustomersTable() {
                     ))}
                 </select>
             </div>
+            {/* New export button */}
+            <Button onClick={handleExportActiveAccounts} variant="primary" className="h-11">
+                <SheetIcon className="h-5 w-5 mr-2" />
+                Export Active
+            </Button>
         </div>
         <div className="flex items-center space-x-2">
             <label htmlFor="pageSizeSelect" className="text-gray-600 dark:text-gray-300">

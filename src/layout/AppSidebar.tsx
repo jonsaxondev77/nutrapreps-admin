@@ -13,9 +13,8 @@ import {
   TableIcon,
   UserIcon,
 } from "../icons/index";
-import { FileManager } from "@/components/file-manager/FileManager";
-import FileManagerPage from "@/app/admin/file-manager/page";
-import { ImageIcon, ShoppingBag, ToolCase } from "lucide-react";
+import { ShoppingBag, ToolCase, DollarSign, Files, PoundSterling } from "lucide-react";
+
 
 type NavItem = {
   name: string;
@@ -27,7 +26,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
-    name: "Dashboard",
+    name: "Dashboards",
     subItems: [
       { name: "Ecommerce", path: "/", pro: false },
       { name: "CRM", path: "/admin/crm", pro: false}
@@ -57,34 +56,23 @@ const navItems: NavItem[] = [
     path: "/admin/orders"
   },
   {
-    icon: <PageIcon />,
-    name: "Pages",
-    path: "/admin/pages",
+    name: "Financials",
+    icon: <PoundSterling />,
+    subItems: [
+      { name: "Outgoings", path: "/admin/outgoings", pro: false },
+    ],
   },
   {
-    name: "Packages",
-    icon: <BoxCubeIcon />,
-    path: "/admin/packages"
-  },
-  {
-    name: "Routes",
-    icon: <BoxCubeIcon />,
-    path: "/admin/routes"
-  },
-  {
-    name: "Meals",
-    icon: <TableIcon />,
-    path: "/admin/meals"
-  },
-  {
-    name: "Meal Options",
-    icon: <TableIcon />,
-    path: "/admin/meal-options"
-  },
-  {
-    name: "Extras",
-    icon: <TableIcon />,
-    path: "/admin/extras"
+    name: "Content & Products",
+    icon: <Files />,
+    subItems: [
+      { name: "Pages", path: "/admin/pages", pro: false },
+      { name: "Packages", path: "/admin/packages", pro: false },
+      { name: "Routes", path: "/admin/routes", pro: false },
+      { name: "Meals", path: "/admin/meals", pro: false },
+      { name: "Meal Options", path: "/admin/meal-options", pro: false },
+      { name: "Extras", path: "/admin/extras", pro: false },
+    ],
   },
   {
     name: "Utilities",
@@ -97,16 +85,21 @@ const navItems: NavItem[] = [
       }
     ]
   },
-
 ];
 
-const othersItems: NavItem[] = [
-
-];
+const othersItems: NavItem[] = [];
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+
+  // New state to manage mounted status
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Set mounted status on component mount
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const renderMenuItems = (
     navItems: NavItem[],
@@ -234,11 +227,9 @@ const AppSidebar: React.FC = () => {
   );
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // const isActive = (path: string) => path === pathname;
   const isActive = useCallback((path: string) => path === pathname, [pathname]);
 
   useEffect(() => {
-    // Check if the current path matches any submenu item
     let submenuMatched = false;
     ["main", "others"].forEach((menuType) => {
       const items = menuType === "main" ? navItems : othersItems;
@@ -257,14 +248,12 @@ const AppSidebar: React.FC = () => {
       });
     });
 
-    // If no submenu item matches, close the open submenu
     if (!submenuMatched) {
       setOpenSubmenu(null);
     }
   }, [pathname, isActive]);
 
   useEffect(() => {
-    // Set the height of the submenu items when the submenu is opened
     if (openSubmenu !== null) {
       const key = `${openSubmenu.type}-${openSubmenu.index}`;
       if (subMenuRefs.current[key]) {
@@ -288,6 +277,11 @@ const AppSidebar: React.FC = () => {
       return { type: menuType, index };
     });
   };
+
+  // Only render the sidebar content on the client after it's mounted
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <aside
@@ -335,8 +329,6 @@ const AppSidebar: React.FC = () => {
               </h2>
               {renderMenuItems(navItems, "main")}
             </div>
-
-
           </div>
         </nav>
         {isExpanded || isHovered || isMobileOpen ? null : null}
