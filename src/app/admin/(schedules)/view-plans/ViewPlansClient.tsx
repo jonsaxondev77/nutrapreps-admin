@@ -317,7 +317,6 @@ export default function ViewPlansClient({downloadApiUrl } :  { downloadApiUrl: 
                                         <TableCell className="px-5 py-4 text-gray-800 text-start dark:text-white/90">{plan.stopsAdded}</TableCell>
                                         <TableCell className="px-5 py-4 text-start align-middle">
                                             {/* Input field for Max Drops Per Sheet (Chunk Size) */}
-                                            
                                             <input
                                                 type="number"
                                                 min={20}
