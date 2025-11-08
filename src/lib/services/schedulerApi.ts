@@ -3,6 +3,17 @@ import { getSession } from "next-auth/react";
 import { baseQueryWithRedirect } from "./baseQuery";
 
 // --- Interfaces for the API responses ---
+
+interface PlanToGenerate {
+    planId: string;
+    splitStops: number;
+}
+
+interface GenerateSheetBody {
+    plans: PlanToGenerate[];
+    date: string;
+}
+
 interface Plan {
     routeId: number;
     planId: string;
@@ -20,8 +31,6 @@ interface JobStatusResponse {
     progress: number;
     message: string;
 }
-
-const API_BASE_URL = "http://localhost:5265/";
 
 export const schedulerApi = createApi({
   reducerPath: "schedulerApi",
@@ -45,11 +54,11 @@ export const schedulerApi = createApi({
             body: planIds,
         }),
     }),
-    generateSheet: builder.mutation<GeneratePlansResponse, { planIds: string[], date: string }>({
+    generateSheet: builder.mutation<GeneratePlansResponse, GenerateSheetBody>({
         query: (body) => ({
             url: `api/jobs/generate-sheet`,
             method: 'POST',
-            body: body,
+            body: body, 
         }),
     }),
     deletePlans: builder.mutation<void, string[]>({
@@ -75,3 +84,5 @@ export const {
     useDeletePlansMutation,
     useLazyGetJobStatusQuery,
 } = schedulerApi;
+
+export type { PlanToGenerate, GenerateSheetBody, Plan };
