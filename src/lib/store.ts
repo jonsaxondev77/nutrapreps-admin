@@ -14,6 +14,7 @@ import { ordersApi } from "./services/ordersApi";
 import { settingsApi } from "./services/settingsApi";
 import { telemetryApi } from "./services/telemetryApi";
 import { crmApi } from "./services/crnApi";
+import { driversApi } from "./services/driversApi";
 
 
 export const makeStore = () => {
@@ -33,7 +34,8 @@ export const makeStore = () => {
       [ordersApi.reducerPath]: ordersApi.reducer,
       [settingsApi.reducerPath]: settingsApi.reducer,
       [telemetryApi.reducerPath]: telemetryApi.reducer,
-      [crmApi.reducerPath]: crmApi.reducer
+      [crmApi.reducerPath]: crmApi.reducer,
+      [driversApi.reducerPath]: driversApi.reducer
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(authApi.middleware,
@@ -42,7 +44,7 @@ export const makeStore = () => {
          packagesApi.middleware, extrasApi.middleware,
          customersApi.middleware, addressApi.middleware,
          dashboardApi.middleware, ordersApi.middleware,
-         settingsApi.middleware, telemetryApi.middleware, crmApi.middleware),
+         settingsApi.middleware, telemetryApi.middleware, crmApi.middleware, driversApi.middleware),
   });
 };
 

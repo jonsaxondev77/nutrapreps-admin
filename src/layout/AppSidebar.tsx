@@ -69,6 +69,7 @@ const navItems: NavItem[] = [
       { name: "Pages", path: "/admin/pages", pro: false },
       { name: "Packages", path: "/admin/packages", pro: false },
       { name: "Routes", path: "/admin/routes", pro: false },
+      { name: "Drivers", path: "/admin/drivers", pro: false },
       { name: "Meals", path: "/admin/meals", pro: false },
       { name: "Meal Options", path: "/admin/meal-options", pro: false },
       { name: "Extras", path: "/admin/extras", pro: false },

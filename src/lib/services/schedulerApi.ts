@@ -6,7 +6,7 @@ import { baseQueryWithRedirect } from "./baseQuery";
 
 interface PlanToGenerate {
     planId: string;
-    splitStops: number;
+    splitStops: number[];
 }
 
 interface GenerateSheetBody {
