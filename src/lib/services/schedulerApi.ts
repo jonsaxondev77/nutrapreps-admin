@@ -2,6 +2,13 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getSession } from "next-auth/react";
 import { baseQueryWithRedirect } from "./baseQuery";
 
+// --- New Assignment DTO (Matching Backend) ---
+interface RouteSegmentAssignment {
+    endStopPosition: number;
+    driverId: number;
+    planId: string;
+}
+
 // --- Interfaces for the API responses ---
 
 interface PlanToGenerate {
@@ -12,6 +19,7 @@ interface PlanToGenerate {
 interface GenerateSheetBody {
     plans: PlanToGenerate[];
     date: string;
+    segments: RouteSegmentAssignment[]; // <--- NEW PROPERTY
 }
 
 interface Plan {
@@ -85,4 +93,4 @@ export const {
     useLazyGetJobStatusQuery,
 } = schedulerApi;
 
-export type { PlanToGenerate, GenerateSheetBody, Plan };
+export type { PlanToGenerate, GenerateSheetBody, Plan, RouteSegmentAssignment };

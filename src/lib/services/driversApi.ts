@@ -23,7 +23,7 @@ export const driversApi = createApi({
   endpoints: (builder) => ({
     
     // GET: api/Drivers?pageNumber=X&pageSize=Y&search=Z
-    getDrivers: builder.query<PagedResponse<Driver>, DriverQueryParameters>({
+    getAllDrivers: builder.query<PagedResponse<Driver>, DriverQueryParameters>({
       query: ({ pageNumber, pageSize, search }) => {
         let url = 'Drivers';
         const params = new URLSearchParams();
@@ -67,7 +67,7 @@ export const driversApi = createApi({
 });
 
 export const {
-  useGetDriversQuery,
+  useGetAllDriversQuery,
   useGetDriverByIdQuery,
   useCreateDriverMutation,
   useUpdateDriverMutation,

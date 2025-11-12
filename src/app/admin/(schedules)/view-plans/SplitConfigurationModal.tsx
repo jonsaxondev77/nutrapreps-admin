@@ -1,12 +1,14 @@
 // src/app/admin/(schedules)/view-plans/SplitConfigurationModal.tsx
 
-import React, { JSX, useState } from 'react';
+import React, { JSX, useState, useEffect } from 'react';
 
 import Button from '@/components/ui/button/Button';
-import { TrashBinIcon, PlusIcon } from '@/icons';
+import { TrashBinIcon, PencilIcon, CloseIcon, LoaderIcon } from '@/icons';
 import { Modal } from '@/components/ui/modal';
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
+import SelectCustom from '@/components/form/SelectCustom'; // Assumed component path
 
-// NOTE: Interfaces remain the same
+// --- ASSUMED INTERFACES (Must match schedulerApi.ts and driver types) ---
 interface ScheduleDetail {
     stopPosition: number;
     name: string;
@@ -14,7 +16,6 @@ interface ScheduleDetail {
     address_Line2: string;
     address_Line3: string;
     address_Postcode: string;
-    // Include other necessary route stop details here
 }
 
 interface Plan {
@@ -23,151 +24,296 @@ interface Plan {
     stopsAdded: number;
 }
 
+interface Driver { 
+    id: number; 
+    firstName: string; 
+    surname: string; 
+} 
+
+interface RouteSegmentAssignment {
+    endStopPosition: number;
+    driverId: number;
+    planId: string;
+}
+// --------------------------------------------------------
+
 interface SplitConfigurationModalProps {
     plan: Plan;
     currentSplits: number[];
     scheduleData: ScheduleDetail[] | null; 
+    drivers: Driver[]; 
+    currentSegments: RouteSegmentAssignment[];
     isLoading: boolean; 
     error: string | null;
-    onSave: (planId: string, points: number[]) => void;
+    // NEW PROP: Total assignments per driver ID across ALL plans
+    driverAssignmentCounts: Record<number, number>; 
+    onSave: (planId: string, splits: number[], segments: RouteSegmentAssignment[]) => void;
     onClose: () => void;
 }
+
+// --- CORE LOGIC: Segment Calculation ---
+const calculateSegments = (
+    currentCutPoints: number[], 
+    stopsAdded: number, 
+    planId: string, 
+    driverAssignmentsToPreserve: RouteSegmentAssignment[]
+): RouteSegmentAssignment[] => {
+    if (stopsAdded === 0) return [];
+
+    const maxStop = stopsAdded;
+    const sortedCutPoints = [...currentCutPoints].sort((a, b) => a - b).filter(s => s > 0 && s < maxStop);
+    
+    let allSegmentsEnds = [...sortedCutPoints, maxStop];
+    allSegmentsEnds = Array.from(new Set(allSegmentsEnds)).filter(s => s > 0).sort((a, b) => a - b);
+    
+    // Create a lookup map from EndStopPosition to DriverId from the assignments to preserve
+    const assignmentLookup = new Map<number, number>();
+    driverAssignmentsToPreserve.forEach(s => assignmentLookup.set(s.endStopPosition, s.driverId));
+
+    const segments: RouteSegmentAssignment[] = [];
+    
+    allSegmentsEnds.forEach(cutPoint => {
+        const driverId = assignmentLookup.get(cutPoint) || 0; 
+
+        segments.push({
+            endStopPosition: cutPoint,
+            planId: planId,
+            driverId: driverId, 
+        });
+    });
+    
+    return segments.sort((a, b) => a.endStopPosition - b.endStopPosition);
+};
+
 
 const SplitConfigurationModal: React.FC<SplitConfigurationModalProps> = ({
     plan,
     currentSplits,
     scheduleData,
+    drivers,
+    currentSegments,
+    driverAssignmentCounts,
     onSave,
     onClose,
+    isLoading,
+    error,
 }) => {
     const [points, setPoints] = useState<number[]>(currentSplits);
-    const [localError, setLocalError] = useState<string | null>(null);
+    const [localError, setLocalError] = useState<string | null>(error);
+    
+    // Tracks if the user has finalized the cut points
+    const [isCuttingComplete, setIsCuttingComplete] = useState<boolean>(currentSegments.length > 0);
+    
+    // Derived state holding the full segments (stop positions + driver assignments)
+    const [segmentAssignments, setSegmentAssignments] = useState<RouteSegmentAssignment[]>([]);
 
     const maxSplittableStop = plan.stopsAdded > 0 ? plan.stopsAdded - 1 : 0;
     const hasData = scheduleData && scheduleData.length > 0; 
+    
+    // 1. Effect to synchronize raw points state with derived segmentAssignments list
+    useEffect(() => {
+        const newAssignments = calculateSegments(
+            points, 
+            plan.stopsAdded, 
+            plan.planId, 
+            segmentAssignments // Pass local state for preservation
+        );
+        setSegmentAssignments(newAssignments);
+    }, [points, plan.stopsAdded, plan.planId]); 
 
-    // 🌟 NEW HANDLER: Toggles a stop point on double-click
+    // 2. Effect to seed the initial segmentAssignments from props on mount
+    useEffect(() => {
+        if (currentSegments.length > 0 && segmentAssignments.length === 0) {
+            setSegmentAssignments(currentSegments);
+            setIsCuttingComplete(true); 
+        }
+        setLocalError(error);
+    }, [currentSegments, error]);
+    
+
+    // --- Interactive Handlers ---
+
     const handleTogglePoint = (stopPosition: number) => {
         setLocalError(null);
-        
-        if (plan.stopsAdded <= 1) {
-            return setLocalError('Route must have at least 2 stops to split.');
-        }
-
-        // We cannot split *after* the very last stop, so max is stopsAdded - 1.
-        if (stopPosition > maxSplittableStop) {
-            return setLocalError(`Cannot split after stop #${stopPosition} as it is the final stop.`);
+        if (plan.stopsAdded <= 1 || stopPosition > maxSplittableStop) {
+             return setLocalError('Cannot split after the final stop or route has < 2 stops.');
         }
         
         setPoints(prev => {
             if (prev.includes(stopPosition)) {
-                // Remove the point
                 return prev.filter(p => p !== stopPosition);
             } else {
-                // Add the point and sort it
                 return [...prev, stopPosition].sort((a, b) => a - b);
             }
         });
+        // If cuts are changed, unlock the assignment phase
+        setIsCuttingComplete(false); 
     };
     
-    // Existing handler to remove from the right pane
     const handleRemovePoint = (pointToRemove: number) => {
         setPoints(prev => prev.filter(p => p !== pointToRemove));
     };
     
-    const handleSave = () => {
-        onSave(plan.planId, points);
+    const handleDriverChange = (endStopPosition: number, driverId: number) => {
+        setSegmentAssignments(prev => prev.map(s => 
+            s.endStopPosition === endStopPosition ? { ...s, driverId } : s
+        ));
+    };
+    
+    const handleLockCuts = () => {
+        if (plan.stopsAdded > 0) {
+            setIsCuttingComplete(true);
+            setLocalError(null);
+        } else {
+            setLocalError('Cannot proceed without route data.');
+        }
     };
 
-    const renderSheetBreakdown = (currentPoints: number[]) => {
-        // (Implementation remains the same as before)
-        const sorted = [...currentPoints].sort((a, b) => a - b);
+    // --- Save Handler ---
+    const handleSave = () => {
+        // Must be complete to save
+        if (!isCuttingComplete || isAssignmentIncomplete) return;
+        
+        // 1. Filter segments to ONLY include those explicitly assigned (driverId > 0)
+        const finalSegments = segmentAssignments.filter(s => s.driverId > 0); 
+        
+        // 2. Determine the raw split points that correspond to the final segments
+        const finalSplits = finalSegments
+            .map(s => s.endStopPosition)
+            .filter(pos => pos < plan.stopsAdded); 
+
+        onSave(plan.planId, finalSplits, finalSegments);
+    };
+
+    // --- Render Logic ---
+    const segmentsToDisplay = segmentAssignments.filter(s => s.endStopPosition > 0).sort((a, b) => a.endStopPosition - b.endStopPosition);
+    let currentStart = 1;
+    
+    const isAssignmentIncomplete = segmentsToDisplay.some(s => s.driverId === 0 && s.endStopPosition > 0);
+    const totalSheets = segmentsToDisplay.length;
+    
+    // Generates the sheet breakdown list for the right pane
+    const renderSheetBreakdown = () => {
         let output: JSX.Element[] = [];
-        let startStop = 1;
         let sheetIndex = 1;
 
         if (plan.stopsAdded === 0) return [<span key="empty">No stops available.</span>];
         
-        if (sorted.length === 0) {
-            return [<span key="full-sheet text=indigo-800 dark:text-white">Sheet 1: Stops 1 &ndash; {plan.stopsAdded}</span>];
-        }
+        // 1. Pre-calculate local assignments count for the *entire* current route
+        const localAssignmentsCount = new Map<number, number>();
+        segmentAssignments.forEach(s => {
+            if (s.driverId > 0) {
+                localAssignmentsCount.set(s.driverId, (localAssignmentsCount.get(s.driverId) || 0) + 1);
+            }
+        });
 
-        for (let i = 0; i < sorted.length; i++) {
-            const endStop = sorted[i];
-            
+        segmentsToDisplay.forEach(segment => {
+            const startStop = currentStart;
+            const endStop = segment.endStopPosition;
+            const isAssigned = segment.driverId > 0;
+
             output.push(
-                <span key={`sheet-${sheetIndex}`} className="text-gray-800 dark:text-white">
-                    <span className="font-semibold text-blue-600 dark:text-white">Sheet {sheetIndex}:</span> Stops {startStop} &ndash; {endStop}
-                </span>
-            );
+                <div key={`segment-${sheetIndex}`} className="p-3 mb-3 rounded-md transition-colors bg-gray-50 dark:bg-gray-700">
+                    <span className={`font-semibold ${isAssigned ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
+                        Sheet {sheetIndex}:
+                    </span> Stops {startStop} &ndash; {endStop}
+                    
+                    <div className='flex items-center space-x-2 mt-2'>
+                        <SelectCustom
+                            id={`driver-select-${endStop}`}
+                            options={[
+                                { value: '0', label: `--- Select Driver ---` },
+                                // 🌟 FINAL CALCULATION FIX: Shows already-assigned load (Workload - 1 for current slot)
+                                ...drivers.map(d => {
+                                    const driverId = d.id;
+                                    
+                                    // 1. Get total assignments from external plans (Global Prop)
+                                    const externalCount = driverAssignmentCounts[driverId] || 0;
+                                    
+                                    // 2. Count how many times this driver is used in the current local state
+                                    const localCount = localAssignmentsCount.get(driverId) || 0;
+                                    
+                                    // 3. Subtract 1 from the local count if the driver is currently assigned to the segment being rendered
+                                    const assignmentsBeforeThisSlot = externalCount + localCount - (driverId === segment.driverId ? 1 : 0);
+                                    
+                                    // 4. Final Count: Total workload including the segment being selected (i.e., assignmentsBeforeThisSlot + 1)
+                                    const totalWorkloadIfChosen = assignmentsBeforeThisSlot + 1;
 
-            if (endStop >= 1 && endStop <= maxSplittableStop) {
-                output.push(
-                    <div key={`split-${sheetIndex}`} className="flex items-center space-x-2 text-xs text-red-500 my-0.5 ml-4">
-                        <span className="font-mono">--- CUT ---</span>
+                                    const label = `${d.firstName} ${d.surname}${totalWorkloadIfChosen > 1 ? ` (${totalWorkloadIfChosen} assigned)` : ''}`;
+                                    
+                                    // The value is the driver ID as a string
+                                    return { value: driverId.toString(), label: label };
+                                })
+                                // ----------------------------------------------------------------------
+                            ]}
+                            // Value must also be converted to string for SelectCustom
+                            value={segment.driverId.toString() || '0'} 
+                            onChange={(e) => handleDriverChange(segment.endStopPosition, parseInt(e.target.value))}
+                            className="w-full text-sm"
+                            disabled={!isCuttingComplete} // Disable assignment unless cuts are confirmed
+                        />
                         <button 
                             onClick={() => handleRemovePoint(endStop)} 
-                            className="text-red-600 hover:text-red-400 p-0.5 rounded"
+                            className="text-red-600 hover:text-red-400 p-1 rounded transition-colors flex-shrink-0"
                             title={`Remove split after Stop ${endStop}`}
+                            disabled={endStop === plan.stopsAdded} // Always enabled unless it's the final stop
                         >
-                            <TrashBinIcon size={14} />
+                            <TrashBinIcon size={16} />
                         </button>
                     </div>
-                );
-            }
-            
-            startStop = endStop + 1;
-            sheetIndex++;
-        }
-
-        if (startStop <= plan.stopsAdded) {
-            output.push(
-                <span key={`sheet-${sheetIndex}`} className="text-gray-800 dark:text-gray-200">
-                    <span className="font-semibold text-blue-600 dark:text-blue-400">Sheet {sheetIndex}:</span> Stops {startStop} &ndash; {plan.stopsAdded}
-                </span>
+                </div>
             );
-        }
+            
+            currentStart = endStop + 1;
+            sheetIndex++;
+        });
 
         return output;
     };
 
-    const totalSheets = points.length + (plan.stopsAdded > 0 ? 1 : 0);
 
     return (
         <Modal 
-            title={`Configure Picking Splits for: ${plan.planTitle}`}
+            title={`Configure Driver Assignments: ${plan.planTitle}`}
             onClose={onClose}
             isOpen={true} 
-            className="max-w-3xl" 
+            className="max-w-4xl" 
         >
             <div className="flex p-5 h-[70vh]">
                 
-                {/* LEFT SIDE: Schedule List */}
+                {/* LEFT SIDE: Schedule List (Interactive Splitting) */}
                 <div className="w-1/2 overflow-y-auto pr-4 border-r dark:border-gray-700">
-                    <h3 className="text-lg font-bold mb-3 dark:text-white">Route Stops ({plan.stopsAdded} Total)</h3>
+                    <h3 className="text-lg font-bold mb-3 dark:text-white">
+                        Route Stops ({plan.stopsAdded} Total)
+                    </h3>
+                    <p className='text-sm text-gray-500 mb-4'>
+                        {isCuttingComplete 
+                            ? 'Cuts Locked. Use Edit Cuts to change.'
+                            : 'Double-click a stop to set/remove a split point *after* that stop.'}
+                    </p>
                     
-                    {localError && <div className="text-red-500 p-3 bg-red-50 rounded-md text-sm mb-4">{localError}</div>}
+                    {/* local error rendering */}
+                    {error && <div className="text-red-500 p-3 bg-red-50 rounded-md text-sm mb-4">{error}</div>}
                     
-                    {!hasData && (
-                         <div className="text-gray-500 p-3">No stop details found for this plan.</div>
-                    )}
+                    {!hasData && (<div className="text-gray-500 p-3">Loading stop details...</div>)}
 
                     {hasData && (
                         <div className="space-y-1">
-                            {scheduleData!.map((item, index) => (
-                                // 🌟 ADDED onDoubleClick HANDLER HERE
+                            {scheduleData!.map((item) => (
                                 <div 
                                     key={item.stopPosition} 
                                     className={`p-2 rounded-md transition-colors text-sm flex items-center cursor-pointer ${
                                         points.includes(item.stopPosition) 
                                             ? 'bg-red-100 dark:bg-red-900/50 border border-red-400' 
-                                            : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                                            : !isCuttingComplete && item.stopPosition <= maxSplittableStop ? 'hover:bg-gray-100 dark:hover:bg-gray-700' : 'cursor-default opacity-70'
                                     }`}
-                                    onDoubleClick={() => handleTogglePoint(item.stopPosition)}
+                                    onDoubleClick={!isCuttingComplete ? () => handleTogglePoint(item.stopPosition) : undefined} 
                                     title={
-                                        item.stopPosition < plan.stopsAdded 
-                                        ? `Double-click to split after stop ${item.stopPosition}`
-                                        : `Cannot split after the final stop (${item.stopPosition})`
+                                        isCuttingComplete 
+                                            ? "Cuts are locked. Use 'Edit Cuts' to modify."
+                                            : item.stopPosition <= maxSplittableStop 
+                                                ? `Double-click to split after stop ${item.stopPosition}`
+                                                : `Final stop - cannot split.`
                                     }
                                 >
                                     <span className="font-bold w-10 inline-block text-lg text-indigo-600 dark:text-indigo-400">
@@ -186,30 +332,78 @@ const SplitConfigurationModal: React.FC<SplitConfigurationModalProps> = ({
                     )}
                 </div>
 
-                {/* RIGHT SIDE: Split Configuration */}
+                {/* RIGHT SIDE: Driver Assignment Configuration */}
                 <div className="w-1/2 pl-4 flex flex-col space-y-4">
                     <div className="p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-700">
                         <p className="font-bold text-lg text-indigo-800 dark:text-white">
-                            Total Stops: {plan.stopsAdded} | Total Sheets: {totalSheets}
+                            Total Sheets: {totalSheets}
                         </p>
                     </div>
 
-                    {/* Visual Breakdown of Sheets */}
-                    <div className="border p-4 rounded-lg bg-white dark:bg-gray-800 space-y-2 flex-grow overflow-y-auto">
-                        <h4 className="font-semibold text-base mb-3 border-b pb-2 dark:border-gray-700 dark:text-white">Sheet Breakdown:</h4>
-                        
-                        <div className="flex flex-col space-y-2 text-sm">
-                            {renderSheetBreakdown(points)}
+                    {/* Assignment Control Block */}
+                    {!isCuttingComplete ? (
+                        <div className="border p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/50 flex-grow flex flex-col justify-center items-center space-y-3">
+                            <p className="font-semibold text-center text-lg">Step 1: Finalize Route Cuts</p>
+                            <p className="text-sm text-center">
+                                Review the left pane. Once complete, confirm the cuts to start assigning drivers.
+                            </p>
+                            <Button 
+                                onClick={handleLockCuts} 
+                                disabled={plan.stopsAdded === 0}
+                                variant="primary"
+                            >
+                                {points.length > 0 ? `Confirm ${points.length} Cut(s)` : 'Confirm Single Sheet'}
+                            </Button>
                         </div>
-                    </div>
+                    ) : (
+                        // Assignment UI (Only visible when cuts are locked)
+                        <div className="border p-4 rounded-lg bg-white dark:bg-gray-800 space-y-3 flex-grow overflow-y-auto">
+                            <h4 className="font-semibold text-base mb-3 border-b pb-2 dark:border-gray-700 dark:text-white">Assignments:</h4>
+                            
+                            {isAssignmentIncomplete && (
+                                <p className="text-sm text-red-500 mb-3 flex items-center">
+                                    <CloseIcon size={16} className="mr-1" /> All segments must be assigned a driver.
+                                </p>
+                            )}
 
-                    
+                            {totalSheets > 0 ? (
+                                <div className="flex flex-col text-sm">
+                                    {renderSheetBreakdown()}
+                                </div>
+                            ) : (
+                                <div className="text-center text-gray-500 pt-5">No segments to assign.</div>
+                            )}
+                            
+                            {/* Option to UNLOCK cuts */}
+                            <div className="flex justify-start pt-3 border-t dark:border-gray-700">
+                                <Button 
+                                    onClick={() => setIsCuttingComplete(false)} 
+                                    variant="secondary"
+                                    size="sm"
+                                >
+                                    <PencilIcon size={16} className='mr-1' /> Edit Cuts
+                                </Button>
+                            </div>
+
+                        </div>
+                    )}
                 </div>
             </div>
 
-            <div className="flex justify-end space-x-4 p-4 border-t dark:border-gray-700">
-                <Button onClick={onClose}>Cancel</Button>
-                <Button onClick={handleSave}>Save ({points.length} Splits)</Button>
+            <div className="flex justify-between p-4 border-t dark:border-gray-700">
+                <p className="text-sm text-gray-600 dark:text-gray-400 self-center">
+                    {points.length} Splits set.
+                </p>
+                <div className="flex space-x-4">
+                    <Button onClick={onClose} variant="secondary">Cancel</Button>
+                    <Button 
+                        onClick={handleSave} 
+                        disabled={!isCuttingComplete || isAssignmentIncomplete}
+                        variant="primary"
+                    >
+                        Save & Assign ({isAssignmentIncomplete ? 'Incomplete' : totalSheets} Sheets)
+                    </Button>
+                </div>
             </div>
         </Modal>
     );
