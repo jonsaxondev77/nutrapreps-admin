@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useGetDriversQuery } from '@/lib/services/driversApi';
+import { useGetAllDriversQuery, useGetDriversQuery } from '@/lib/services/driversApi';
 import TableSkeleton from '@/components/tables/TableSkeleton';
 import Pagination from '@/components/tables/Pagination';
 import Button from '@/components/ui/button/Button';
@@ -30,7 +30,7 @@ const DriversTable: React.FC = () => {
     search: debouncedSearch,
   };
 
-  const { data, isLoading, isFetching, error } = useGetDriversQuery(queryParams);
+  const { data, isLoading, isFetching, error } = useGetAllDriversQuery(queryParams);
 
   const { isOpen: isModalOpen, openModal, closeModal } = useModal();
   const { isOpen: isDeleteOpen, openModal: openDelete, closeModal: closeDelete } = useModal();
