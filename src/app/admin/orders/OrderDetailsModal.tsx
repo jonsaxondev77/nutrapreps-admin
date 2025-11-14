@@ -3,10 +3,11 @@
 import React from 'react';
 import { Modal } from '@/components/ui/modal';
 
-import { Package, Salad, ChefHat, Loader2 } from 'lucide-react';
+import { Package, Salad, ChefHat, Loader2, Pencil } from 'lucide-react'; 
 import { useGetOrderByIdQuery } from '@/lib/services/ordersApi';
 import Button from '@/components/ui/button/Button';
 import { ExtraDetail, OrderItem } from '@/types/orders';
+// import AdminOrderModal from './AdminOrderModal'; // No longer imported here
 
 interface OrderDetailsModalProps {
     isOpen: boolean;
@@ -15,6 +16,7 @@ interface OrderDetailsModalProps {
 }
 
 const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, orderId }) => {
+    
     const { data: order, isLoading, isError } = useGetOrderByIdQuery(orderId!, {
         skip: !isOpen || orderId === null,
     });
@@ -25,15 +27,15 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
         if (!items || items.length === 0) return <p>No meals in this plan.</p>;
         return items.map((item) => (
             <div key={item.orderItemId} className="mb-4">
-                <h4 className="font-semibold text-md text-gray-300 dark:text-white/90 flex items-center gap-2">
+                <h4 className="font-semibold text-md text-gray-600 dark:text-white/90 flex items-center gap-2">
                     <Package size={20} />
                     {item.planName}
                 </h4>
-                <p className="text-sm text-gray-400 ml-7">Delivery on: {item.deliveryDay}</p>
+                <p className="text-sm text-gray-600 ml-7">Delivery on: {item.deliveryDay}</p>
 
                 <div className="mt-2 ml-7">
-                    <p className="font-semibold text-gray-400">Meals:</p>
-                    <ul className="list-disc list-inside space-y-1 ml-4 text-gray-300">
+                    <p className="font-semibold text-gray-600">Meals:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-gray-600">
                         {item.meals.map((meal, idx) => (
                             <li key={idx}>{meal.quantity}x {meal.mealName}</li>
                         ))}
@@ -42,12 +44,15 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
             </div>
         ));
     };
-
+    
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-[800px] p-5 lg:p-10">
-            <h4 className="mb-6 text-lg font-medium text-gray-800 dark:text-white/90">
-                Order Details #{orderId}
-            </h4>
+            <div className="flex justify-between items-center mb-6">
+                <h4 className="text-lg font-medium text-gray-800 dark:text-white/90">
+                    Order Details #{orderId}
+                </h4>
+                                
+            </div>
             <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
                 {isLoading && (
                     <div className="flex justify-center items-center h-40">
@@ -65,6 +70,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
                             <div>
                                 <h3 className="font-bold text-lg text-gray-800 dark:text-white/90">Customer Info</h3>
                                 <p className="text-gray-600 dark:text-gray-400"><span className="font-semibold">Name:</span> {order.customerName}</p>
+                                <p className="text-gray-600 dark:text-gray-400"><span className="font-semibold">Telephone:</span> {order.telephone}</p>
                             </div>
                             <div>
                                 <h3 className="font-bold text-lg text-gray-800 dark:text-white/90">Order Info</h3>

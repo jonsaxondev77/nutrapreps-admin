@@ -1,5 +1,5 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { DetailedOrderResponse, OrderListResponse, OrderStatus } from "@/types/orders";
+import { DetailedOrderResponse, OrderListResponse, OrderStatus, AdminPlaceOrderRequest, PlaceOrderResponse, AdminUpdateOrderRequest, MealOption, Extra } from "@/types/orders"; // <-- IMPORT NEW TYPES
 import { baseQueryWithRedirect } from "./baseQuery";
 
 export const ordersApi = createApi({
@@ -14,8 +14,33 @@ export const ordersApi = createApi({
     getOrderById: builder.query<DetailedOrderResponse, number>({
         query: (id) => `order/details/${id}`,
         providesTags: (result, error, id) => [{ type: 'Orders', id }],
+    }),
+
+    getAvailableMeals: builder.query<MealOption[], void>({
+        query: () => 'order/meals',
+    }),
+
+    getAvailableExtras: builder.query<Extra[], void>({
+        query: () => 'order/extras',
+    }),
+
+    // NEW: Mutation for Admin Place Order
+    adminPlaceOrder: builder.mutation<PlaceOrderResponse, AdminPlaceOrderRequest>({
+        query: (orderData) => ({
+            url: 'order/admin-place',
+            method: 'POST',
+            body: orderData,
+        }),
+        invalidatesTags: ["Orders"], // Invalidate all orders to refresh list
     })
   }),
 });
 
-export const { useGetOrdersQuery, useGetOrderByIdQuery } = ordersApi;
+// Update hook exports
+export const { 
+  useGetOrdersQuery,
+  useGetOrderByIdQuery,
+  useGetAvailableExtrasQuery,
+  useGetAvailableMealsQuery,
+  useAdminPlaceOrderMutation
+} = ordersApi;

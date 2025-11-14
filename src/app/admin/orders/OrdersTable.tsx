@@ -1,9 +1,10 @@
+// src/app/admin/orders/OrdersTable.tsx
 'use client';
 
 import { useGetOrdersQuery } from '@/lib/services/ordersApi';
 import React, { useState } from 'react';
 import Pagination from '@/components/tables/Pagination';
-import { CheckCircle, Eye, XCircle, Download } from 'lucide-react';
+import { CheckCircle, Eye, XCircle, Download, Plus } from 'lucide-react';
 import OrderDetailsModal from './OrderDetailsModal';
 import Button from '@/components/ui/button/Button';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
@@ -13,7 +14,7 @@ import TableSkeleton from '@/components/tables/TableSkeleton';
 import ErrorAlert from '@/components/common/ErrorAlert';
 import { Dropdown } from '@/components/ui/dropdown/Dropdown';
 import { DropdownItem } from '@/components/ui/dropdown/DropdownItem';
-import SendWeeklyReminder from "@/components/orders/SendWeeklyReminder";
+import AdminPlaceOrderModal from './AdminPlaceOrderModal'; // <-- IMPORT REMAINS, NAME IS NOW PLACE
 
 const getSundayForDate = (date: Date) => {
     const d = new Date(date);
@@ -32,6 +33,14 @@ const OrdersTable = () => {
     const [pageSize, setPageSize] = useState(10);
     const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
 
+    // STATE FOR ORDER DETAILS MODAL
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+
+    // STATE FOR ADMIN ORDER MODAL (PLACE ONLY)
+    const [isPlaceOrderModalOpen, setIsPlaceOrderModalOpen] = useState(false);
+    // REMOVED: const [orderIdToAmend, setOrderIdToAmend] = useState<number | null>(null); 
+
     const weekStartISO = new Date(Date.UTC(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate())).toISOString();
 
     const { data, error, isLoading } = useGetOrdersQuery({
@@ -40,20 +49,22 @@ const OrdersTable = () => {
         weekStart: weekStartISO,
     });
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
 
     const handleViewDetails = (orderId: number) => {
         setSelectedOrderId(orderId);
         setIsModalOpen(true);
     };
 
+    // HANDLER FOR CLOSING ADMIN MODALS
+    const handleCloseAdminModal = () => {
+        setIsPlaceOrderModalOpen(false); // Clears Place state
+    }
+
     const handleDateChange = (date: Date) => {
         setSelectedDate(getSundayForDate(date));
         setCurrentPage(1);
     };
 
-    // NEW: Handle page size change
     const handlePageSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setPageSize(Number(event.target.value));
         setCurrentPage(1);
@@ -124,8 +135,18 @@ const OrdersTable = () => {
         <>
             <PageBreadcrumb pageTitle="Orders" />
             
-            {/* NEW: Action Bar */}
-            <div className="flex flex-col sm:flex-row sm:justify-end items-start sm:items-end sm:space-x-2 mb-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-end sm:space-x-2 mb-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
+                
+                <Button 
+                    size="sm" 
+                    variant="primary" 
+                    startIcon={<Plus size={16} />} 
+                    onClick={() => setIsPlaceOrderModalOpen(true)}
+                    className="mb-2 sm:mb-0" 
+                >
+                    Admin Place Order
+                </Button>
+
                 <div className="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
                     <div className="relative">
                         <Button 
@@ -158,7 +179,6 @@ const OrdersTable = () => {
                         enableSundaysOnly={true}
                     />
                 </div>
-                {/* Page Size Dropdown and Export Buttons */}
                 <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end sm:space-x-2">
                     <div className="flex items-center space-x-2">
                         <label htmlFor="pageSizeSelect" className="text-gray-600 dark:text-gray-300">
@@ -213,7 +233,6 @@ const OrdersTable = () => {
                                     >
                                         Total
                                     </TableCell>
-                                    {/* NEW: Payment Status Header */}
                                     <TableCell
                                         isHeader
                                         className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
@@ -245,7 +264,6 @@ const OrdersTable = () => {
                                         <TableCell className="w-32 px-4 py-3 text-gray-500 text-start dark:text-gray-400">
                                             {order.total}
                                         </TableCell>
-                                        {/* NEW: Payment Status Cell */}
                                         <TableCell className="w-40 px-4 py-3 text-start">
                                             {order.hasPayment === true ? (
                                                 <CheckCircle size={20} className="text-green-500" />
@@ -274,11 +292,21 @@ const OrdersTable = () => {
                     />
                 )}
             </div>
-            {selectedOrderId !== null && (
+            
+            {/* 1. Order Details Modal */}
+            {isModalOpen && selectedOrderId !== null && (
                 <OrderDetailsModal
-                    isOpen={!!selectedOrderId}
-                    onClose={() => setSelectedOrderId(null)}
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
                     orderId={selectedOrderId}
+                />
+            )}
+
+            {/* 2. Admin Place Order Modal */}
+            {isPlaceOrderModalOpen && (
+                <AdminPlaceOrderModal
+                    isOpen={isPlaceOrderModalOpen}
+                    onClose={handleCloseAdminModal} 
                 />
             )}
         </>
