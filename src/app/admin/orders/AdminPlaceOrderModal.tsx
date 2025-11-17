@@ -14,6 +14,7 @@ import DatePickerCustom from '@/components/form/date-picker-custom';
 import ErrorAlert from '@/components/common/ErrorAlert';
 import { useGetCustomersQuery } from '@/lib/services/customersApi';
 import { useGetPackagesQuery } from '@/lib/services/packagesApi';
+import Autocomplete from '@/components/autocomplete';
 
 // Included Helper Method
 const getSundayForDate = (date: Date) => {
@@ -348,22 +349,33 @@ const AdminPlaceOrderModal: React.FC<AdminPlaceOrderModalProps> = ({ isOpen, onC
                         <p>If you are correcting a mistake or adding an item specifically for a **Wednesday** delivery in the *current* cycle, you must still select the original **Sunday** as the "Week Start Date". Then, select the correct plan and choose "Wednesday (Single)" as the delivery day. This ensures the delivery date is correctly linked to the ongoing weekly batch.</p>
                     </div>
                     
-                    {/* RESTORED: Customer Selection */}
-                    <Select
+                    <Autocomplete
                         label="Customer Account"
                         name="accountId"
-                        value={formState.accountId ?? 0}
-                        onChange={(value) => setFormState(prev => ({ ...prev, accountId: Number(value) }))}
-                        options={[{ value: '0', label: 'Select Customer' }, ...customerOptions.filter(c => c.value > 0).map(c => ({...c, value: c.value.toString()}))]}
+                        // The value should be the currently selected customer object for display
+                        value={customerOptions.find(c => c.value === formState.accountId) || null} 
+                        // Handle the change: the component returns the full selected option object
+                        onChange={(selectedOption) => {
+                            setFormState(prev => ({ 
+                                ...prev, 
+                                accountId: selectedOption ? Number(selectedOption.value) : null 
+                            }));
+                        }}
+                        // The options are already memoized, just pass them directly
+                        options={customerOptions.filter(c => c.value > 0)}
+                        placeholder="Search for customer by name or email..."
                         required
                     />
                     
+                    <div className="flex items-center space-x-4">
+                    <label className="text-gray-600 dark:text-gray-300">Order Date</label>
                     <DatePickerCustom
                         label="Week Start Date (Sunday)"
                         selected={formState.weekstart}
                         onChange={(date: Date) => setFormState(prev => ({ ...prev, weekstart: date }))}
                         enableSundaysOnly={true}
                     />
+                    </div>
 
                     <div className="flex items-center space-x-4">
                         <label className="text-gray-600 dark:text-gray-300">Payment Status (Paid)</label>
