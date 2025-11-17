@@ -17,6 +17,7 @@ interface MealOption {
   name: string;
   isAddon: boolean;
   mealId: number;
+  color: string;
 }
 
 interface MealOptionModalProps {
@@ -44,7 +45,7 @@ export default function MealOptionModal({
     reset,
   } = useForm<MealOptionFormData>({
     resolver: zodResolver(mealOptionSchema),
-    defaultValues: { name: '', isAddon: false, mealId: 0 }
+    defaultValues: { name: '', isAddon: false, mealId: 0, color: '#ffffff' }
   });
 
   const mealOptionsForSelect = mealsList.map(meal => ({ value: String(meal.id), label: meal.name }));
@@ -56,9 +57,10 @@ export default function MealOptionModal({
           name: mealOption.name,
           isAddon: mealOption.isAddon,
           mealId: mealOption.mealId,
+          color: mealOption.color || '#ffffff',
         });
       } else if (mode === 'create') {
-        reset({ name: '', isAddon: false, mealId: 0 });
+        reset({ name: '', isAddon: false, mealId: 0, color: '#ffffff' });
       }
     }
   }, [mealOption, isOpen, reset, mode]);
@@ -91,6 +93,18 @@ export default function MealOptionModal({
                     {...register('name')}
                     error={!!errors.name} 
                     hint={errors.name?.message} 
+                />
+            </div>
+
+            <div>
+                <Label htmlFor="color">Picking Sheet Color (Hex Code)</Label>
+                <InputFieldCustom 
+                    id="color" 
+                    type="color" // Use type="color" for browser color picker widget
+                    {...register('color')}
+                    error={!!errors.color} 
+                    hint={errors.color?.message} 
+                    className="w-full h-10 p-1 cursor-pointer" // Style for color input
                 />
             </div>
             

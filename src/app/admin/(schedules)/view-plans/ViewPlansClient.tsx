@@ -108,7 +108,7 @@ export default function ViewPlansClient({downloadApiUrl } : { downloadApiUrl: st
     const [triggerGetJobStatus] = useLazyGetJobStatusQuery();
     
     // NEW HOOK: Fetch all drivers
-    const { data: driverResponse, isLoading: driversLoading } = useGetAllDriversQuery({ pageNumber: 1, pageSize: 250 });
+    const { data: driverResponse, isLoading: driversLoading } = useGetAllDriversQuery({ pageNumber: 1, pageSize: 9999 });
     const drivers: Driver[] = driverResponse?.data || [];
     
     // --- CALCULATE GLOBAL DRIVER COUNTS ---
