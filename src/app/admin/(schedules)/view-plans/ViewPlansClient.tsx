@@ -108,7 +108,7 @@ export default function ViewPlansClient({downloadApiUrl } : { downloadApiUrl: st
     const [triggerGetJobStatus] = useLazyGetJobStatusQuery();
     
     // NEW HOOK: Fetch all drivers
-    const { data: driverResponse, isLoading: driversLoading } = useGetAllDriversQuery({ pageNumber: 1, pageSize: 9999 });
+    const { data: driverResponse, isLoading: driversLoading } = useGetAllDriversQuery({ pageNumber: 1, pageSize: 250 });
     const drivers: Driver[] = driverResponse?.data || [];
     
     // --- CALCULATE GLOBAL DRIVER COUNTS ---
@@ -474,13 +474,27 @@ export default function ViewPlansClient({downloadApiUrl } : { downloadApiUrl: st
 
             
             <div className="mt-4">
-                {/* Error/Loading messages omitted for brevity */}
+                {isLoading && (<div className="flex items-center justify-center p-8 text-gray-500"><LoaderIcon className="animate-spin mr-3 h-6 w-6" /><span>Loading plans...</span></div>)}
+                {(error || queryError) && !isLoading && (<div className="flex items-center p-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-red-900 dark:text-red-300" role="alert"><CloseIcon className="mr-3 w-5 h-5" /><div><span className="font-medium">Error:</span> {error || (queryError as any)?.data?.message || 'An error occurred'}</div></div>)}
+                {!isLoading && !(error || queryError) && plans.length === 0 && (<div className="text-center p-8 border-2 border-dashed border-gray-200 rounded-lg"><h3 className="text-lg font-medium text-gray-800 dark:text-white">No Plans Found</h3><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">There are no generated plans for this date.</p></div>)}
 
                 {plans.length > 0 && !isLoading && (
                     <div className="overflow-x-auto">
                         <Table>
                             <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-                                <TableRow>{/* ... TableHeader rows ... */}</TableRow>
+                                <TableRow>
+                                     <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                                        <CheckboxCustom id='select-all' checked={isAllSelected} onChange={handleSelectAll} />
+                                    </TableCell>
+                                    <TableCell isHeader
+                                        className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Route ID</TableCell>
+                                    <TableCell isHeader
+                                        className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Plan Title</TableCell>
+                                    <TableCell isHeader
+                                        className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Stops Added</TableCell>
+                                    <TableCell isHeader
+                                        className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">View in Circuit</TableCell>
+                                </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {plans.map((plan: Plan) => {
