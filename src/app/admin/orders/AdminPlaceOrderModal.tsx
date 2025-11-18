@@ -76,7 +76,7 @@ const AdminPlaceOrderModal: React.FC<AdminPlaceOrderModalProps> = ({ isOpen, onC
     const [formError, setFormError] = useState<string | null>(null);
 
     // --- Data Fetching ---
-    const { data: customersData, isLoading: isLoadingCustomers } = useGetCustomersQuery({ pageNumber: 1, pageSize: 1000 });
+    const { data: customersData, isLoading: isLoadingCustomers } = useGetCustomersQuery({ pageNumber: 1, pageSize: 20000 });
     const { data: packagesData, isLoading: isLoadingPackages } = useGetPackagesQuery({ page: 1, size: 1000 });
     const { data: mealOptionsData } = useGetAvailableMealsQuery();
     const { data: extrasData } = useGetAvailableExtrasQuery();
