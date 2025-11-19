@@ -20,6 +20,10 @@ export const ordersApi = createApi({
         query: () => 'order/meals',
     }),
 
+    getAvailableAddons: builder.query<MealOption[], void>({
+        query: () => 'order/addons',
+    }),
+
     getAvailableExtras: builder.query<Extra[], void>({
         query: () => 'order/extras',
     }),
@@ -41,6 +45,7 @@ export const {
   useGetOrdersQuery,
   useGetOrderByIdQuery,
   useGetAvailableExtrasQuery,
+  useGetAvailableAddonsQuery,
   useGetAvailableMealsQuery,
   useAdminPlaceOrderMutation
 } = ordersApi;

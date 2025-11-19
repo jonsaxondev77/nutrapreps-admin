@@ -49,6 +49,21 @@ export const customersApi = createApi({
       },
       providesTags: ["Customers"],
     }),
+    searchActiveCustomers: builder.query<Account[], { searchTerm?: string }>({
+      query: ({ searchTerm }) => {
+        let url = 'accounts/search';
+        const params = new URLSearchParams();
+        
+        if (searchTerm) {
+          params.append('searchTerm', searchTerm);
+          return `${url}?${params.toString()}`;
+        }
+        
+        // If no search term is provided, the backend will return all active customers.
+        return url;
+      },
+      providesTags: ["Customers"],
+    }),
     getPendingUsers: builder.query<PaginatedUsers, { pageNumber: number; pageSize: number }>({
       query: ({ pageNumber, pageSize }) => `accounts/bystatus?status=2&pageNumber=${pageNumber}&pageSize=${pageSize}`,
       providesTags: ["Customers"],
@@ -80,4 +95,4 @@ export const customersApi = createApi({
   }),
 });
 
-export const { useGetCustomersQuery, useGetPendingUsersQuery, useUpdateCustomerMutation, useAssignRouteAndActivateMutation, useCreateStripeCustomerMutation } = customersApi;
+export const { useGetCustomersQuery, useLazySearchActiveCustomersQuery, useGetPendingUsersQuery, useUpdateCustomerMutation, useAssignRouteAndActivateMutation, useCreateStripeCustomerMutation } = customersApi;

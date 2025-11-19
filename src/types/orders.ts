@@ -71,7 +71,7 @@ export interface OrderListResponse extends PagedResponse<OrderListResponse> { }
 export interface MealDto {
   mealOptionId: number;
   quantity: number;
-  day: 'Sunday' | 'Wednesday' | 'Both'; // The delivery day for the meal selection
+  day: 'Sunday' | 'Wednesday' | 'Both' | null; // The delivery day for the meal selection
 }
 
 /**

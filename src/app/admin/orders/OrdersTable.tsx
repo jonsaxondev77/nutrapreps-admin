@@ -15,6 +15,7 @@ import ErrorAlert from '@/components/common/ErrorAlert';
 import { Dropdown } from '@/components/ui/dropdown/Dropdown';
 import { DropdownItem } from '@/components/ui/dropdown/DropdownItem';
 import AdminPlaceOrderModal from './AdminPlaceOrderModal'; // <-- IMPORT REMAINS, NAME IS NOW PLACE
+import AdminAddItemsToOrderModal from './AdminAddItemsToOrderModal';
 
 const getSundayForDate = (date: Date) => {
     const d = new Date(date);
@@ -304,7 +305,7 @@ const OrdersTable = () => {
 
             {/* 2. Admin Place Order Modal */}
             {isPlaceOrderModalOpen && (
-                <AdminPlaceOrderModal
+                <AdminAddItemsToOrderModal
                     isOpen={isPlaceOrderModalOpen}
                     onClose={handleCloseAdminModal} 
                 />

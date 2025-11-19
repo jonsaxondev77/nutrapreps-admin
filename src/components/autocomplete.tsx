@@ -1,9 +1,8 @@
-// components/form/Autocomplete.tsx (Conceptual Component)
+import React, { useState, useMemo, useRef } from 'react';
+import { Loader2, X } from 'lucide-react'; // Import 'X' icon
+import InputFieldCustom from './form/input/InputFieldCustom';
 
-import React, { useState, useMemo } from 'react';
-
-import { Loader2 } from 'lucide-react';
-import InputField from './form/input/InputField';
+// --- Component Types ---
 
 interface Option {
     value: number | string;
@@ -16,9 +15,11 @@ interface AutocompleteProps {
     value: Option | null;
     options: Option[];
     onChange: (selected: Option | null) => void;
+    inputValue: string;
+    onInputValueChange: (inputValue: string) => void;
     placeholder?: string;
     required?: boolean;
-    // ... other props
+    isLoading?: boolean;
 }
 
 const Autocomplete: React.FC<AutocompleteProps> = ({
@@ -27,53 +28,97 @@ const Autocomplete: React.FC<AutocompleteProps> = ({
     value,
     options,
     onChange,
+    inputValue,
+    onInputValueChange,
     placeholder = 'Search...',
     required,
+    isLoading = false,
 }) => {
-    const [searchTerm, setSearchTerm] = useState(value ? value.label : '');
     const [isOpen, setIsOpen] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null); // Ref for focusing
 
-    // Filter options based on search term
     const filteredOptions = useMemo(() => {
-        if (!searchTerm) return options;
+        if (!inputValue) return options;
         return options.filter(option =>
-            option.label.toLowerCase().includes(searchTerm.toLowerCase())
-        ).slice(0, 50); // Limit results for performance
-    }, [searchTerm, options]);
-
-    // Update search term when value prop changes (e.g., initial load or form reset)
-    React.useEffect(() => {
-        setSearchTerm(value ? value.label : '');
-    }, [value]);
+            option.label.toLowerCase().includes(inputValue.toLowerCase())
+        ).slice(0, 50);
+    }, [inputValue, options]);
 
     const handleSelect = (option: Option) => {
-        setSearchTerm(option.label);
         onChange(option);
         setIsOpen(false);
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(e.target.value);
+    const handleLocalInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value;
+        
+        onInputValueChange(newValue);
         setIsOpen(true);
-        // Clear value if input is cleared
-        if (e.target.value === '') {
+
+        if (newValue === '') {
             onChange(null);
         }
     };
+    
+    const handleClear = (e: React.MouseEvent) => {
+        e.preventDefault(); // Prevent form submission if inside a form
+        e.stopPropagation(); // Stop event from propagating (e.g., preventing blur)
+        
+        onInputValueChange(''); // Clear the search input value
+        onChange(null); // Clear the selected value (accountId)
+        setIsOpen(false);
+        
+        // Focus the input after clearing
+        if (inputRef.current) {
+            inputRef.current.focus();
+        }
+    }
+
+    const handleBlur = () => {
+        setTimeout(() => setIsOpen(false), 200);
+    };
+
+    const displayValue = useMemo(() => {
+        if (value) {
+            return value.label;
+        }
+        return inputValue;
+    }, [value, inputValue]);
 
     return (
         <div className="relative">
             {label && <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{label}{required ? <span className="text-red-500">*</span> : ''}</label>}
             
-            <InputField
-                name={name + '-search'}
-                placeholder={placeholder}
-                value={searchTerm}
-                onChange={handleInputChange}
-                onFocus={() => setIsOpen(true)}
-                // Delay blur to allow click on option
-                onBlur={() => setTimeout(() => setIsOpen(false), 200)} 
-            />
+            <div className="relative"> {/* Wrapper for input and clear button */}
+                <InputFieldCustom
+                    ref={inputRef} // Attach ref here
+                    name={name + '-search'}
+                    placeholder={placeholder}
+                    value={displayValue}
+                    onChange={handleLocalInputChange}
+                    onFocus={() => setIsOpen(true)}
+                    onBlur={handleBlur} 
+                />
+                
+                {/* Clear Button (Visible if there is text or a selected value) */}
+                {(displayValue || isLoading) && (
+                    <div className={`absolute right-0 top-1/2 -mt-2.5 flex items-center pr-3 ${isLoading ? 'space-x-2' : ''}`}>
+                         {isLoading && (
+                            <Loader2 className="w-4 h-4 animate-spin text-theme-primary" />
+                         )}
+                         {(!!displayValue && !isLoading) && (
+                            <button
+                                type="button"
+                                onClick={handleClear}
+                                aria-label="Clear search"
+                                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                         )}
+                    </div>
+                )}
+            </div>
 
             {isOpen && filteredOptions.length > 0 && (
                 <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto dark:bg-gray-800 dark:border-gray-600">
@@ -81,14 +126,14 @@ const Autocomplete: React.FC<AutocompleteProps> = ({
                         <li
                             key={option.value}
                             className="p-2 cursor-pointer hover:bg-theme-primary/10 dark:hover:bg-theme-primary/20 text-sm text-gray-900 dark:text-gray-100"
-                            onMouseDown={() => handleSelect(option)} // Use onMouseDown to trigger before onBlur
+                            onMouseDown={() => handleSelect(option)} 
                         >
                             {option.label}
                         </li>
                     ))}
                 </ul>
             )}
-            {/* Display status for debugging */}
+            
             <input type="hidden" name={name} value={value?.value || ''} />
         </div>
     );
