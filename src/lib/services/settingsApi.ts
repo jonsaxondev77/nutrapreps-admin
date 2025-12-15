@@ -10,6 +10,11 @@ interface UpdateStatusRequest {
     isOrderingEnabled: boolean;
 }
 
+interface DeliveryAvailability {
+    isSundayDeliveryEnabled: boolean;
+    isWednesdayDeliveryEnabled: boolean;
+}
+
 export const settingsApi = createApi({
     reducerPath: "settingsApi",
     baseQuery: baseQueryWithRedirect,
@@ -27,7 +32,19 @@ export const settingsApi = createApi({
             }),
             invalidatesTags: ["Settings"],
         }),
+        getDeliveryAvailability: builder.query<DeliveryAvailability, void>({
+            query: () => "settings/delivery-availability",
+            providesTags: ["Settings"],
+        }),
+        updateDeliveryAvailability: builder.mutation<DeliveryAvailability, DeliveryAvailability>({
+            query: (availability) => ({
+                url: "settings/delivery-availability",
+                method: "PUT",
+                body: availability,
+            }),
+            invalidatesTags: ["Settings"],
+        })
     }),
 });
 
-export const { useGetOrderingStatusQuery, useUpdateOrderingStatusMutation } = settingsApi;
+export const { useGetOrderingStatusQuery, useUpdateOrderingStatusMutation, useGetDeliveryAvailabilityQuery, useUpdateDeliveryAvailabilityMutation } = settingsApi;
