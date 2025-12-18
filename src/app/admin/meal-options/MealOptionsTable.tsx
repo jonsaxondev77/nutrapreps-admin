@@ -17,6 +17,8 @@ interface MealOption {
   name: string;
   description: string;
   isAddon: boolean;
+  allowedDoubleProtein: boolean;
+  color: string;
   mealId: number;
   meal: {
     id: number;

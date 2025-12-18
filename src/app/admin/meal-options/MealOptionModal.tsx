@@ -18,6 +18,7 @@ interface MealOption {
   isAddon: boolean;
   mealId: number;
   color: string;
+  allowedDoubleProtein: boolean;
 }
 
 interface MealOptionModalProps {
@@ -45,7 +46,7 @@ export default function MealOptionModal({
     reset,
   } = useForm<MealOptionFormData>({
     resolver: zodResolver(mealOptionSchema),
-    defaultValues: { name: '', isAddon: false, mealId: 0, color: '#ffffff' }
+    defaultValues: { name: '', isAddon: false, mealId: 0, color: '#ffffff', allowedDoubleProtein: false }
   });
 
   const mealOptionsForSelect = mealsList.map(meal => ({ value: String(meal.id), label: meal.name }));
@@ -58,9 +59,10 @@ export default function MealOptionModal({
           isAddon: mealOption.isAddon,
           mealId: mealOption.mealId,
           color: mealOption.color || '#ffffff',
+          allowedDoubleProtein: mealOption.allowedDoubleProtein
         });
       } else if (mode === 'create') {
-        reset({ name: '', isAddon: false, mealId: 0, color: '#ffffff' });
+        reset({ name: '', isAddon: false, mealId: 0, color: '#ffffff', allowedDoubleProtein: false });
       }
     }
   }, [mealOption, isOpen, reset, mode]);
@@ -123,6 +125,11 @@ export default function MealOptionModal({
                     id="isAddon"
                     label="Is Add-on?"
                     {...register('isAddon')}
+                />
+                <CheckboxCustom
+                  id="allowDoubleProtein"
+                  label="Allow Double Protein?"
+                  {...register('allowedDoubleProtein')}
                 />
             </div>
         </div>

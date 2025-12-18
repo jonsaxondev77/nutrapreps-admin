@@ -24,6 +24,10 @@ interface Meal {
     carbs: string;
     protein: string;
     calories: string;
+    doubleFat: string;
+    doubleCarbs: string;
+    doubleProtein: string;
+    doubleCalories: string;
     allergies: string | null;
     supplement: number | null;
     stripeProductId?: string;
@@ -71,6 +75,10 @@ export default function MealModal({
                     carbs: meal.carbs || "",
                     protein: meal.protein || "",
                     fat: meal.fat || "",
+                    doubleCalories: meal.doubleCalories || "",
+                    doubleCarbs: meal.doubleCarbs || "",
+                    doubleProtein: meal.doubleProtein || "",
+                    doubleFat: meal.doubleFat || "",
                     allergies: meal.allergies || "",
                     supplement: meal.supplement || 0,
                     imageUrl: meal.imageUrl || "",
@@ -84,6 +92,10 @@ export default function MealModal({
                     carbs: "",
                     protein: "",
                     fat: "",
+                    doubleCalories: "",
+                    doubleCarbs: "",
+                    doubleProtein: "",
+                    doubleFat: "",
                     allergies: "",
                     supplement: 0,
                     imageUrl: "",
@@ -278,6 +290,46 @@ export default function MealModal({
                                 {...register("fat")}
                                 error={!!errors.fat}
                                 hint={errors.fat?.message}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="calories">Double Calories</Label>
+                            <InputFieldCustom
+                                id="doubleCalories"
+                                type="text"
+                                {...register("doubleCalories")}
+                                error={!!errors.doubleCalories}
+                                hint={errors.doubleCalories?.message}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="doubleCarbs">Double Carbs</Label>
+                            <InputFieldCustom
+                                id="doubleCarbs"
+                                type="text"
+                                {...register("doubleCarbs")}
+                                error={!!errors.doubleCarbs}
+                                hint={errors.doubleCarbs?.message}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="doubleProtein">Double Protein</Label>
+                            <InputFieldCustom
+                                id="doubleProtein"
+                                type="text"
+                                {...register("doubleProtein")}
+                                error={!!errors.doubleProtein}
+                                hint={errors.doubleProtein?.message}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="doubleFat">Double Fat</Label>
+                            <InputFieldCustom
+                                id="doubleFat"
+                                type="text"
+                                {...register("doubleFat")}
+                                error={!!errors.doubleFat}
+                                hint={errors.doubleFat?.message}
                             />
                         </div>
                         <div className="md:col-span-2">
