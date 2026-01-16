@@ -25,6 +25,8 @@ export const dashboardApi = createApi({
     getMealOrderCountForDate: builder.query<IMealOrderCount[], { targetDate: string }>({
         query: ({ targetDate }) => `order/meal-order-count?targetDate=${targetDate}`,
     }),
+
+    
   }),
 });
 
