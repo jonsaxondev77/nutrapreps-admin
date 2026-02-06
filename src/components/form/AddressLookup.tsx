@@ -16,7 +16,7 @@ const AddressLookup: React.FC<AddressLookupProps> = ({ onAddressSelected }) => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;
     setSearchTerm(term);
-    if (term.length > 2) {
+    if (term.length > 5) {
       triggerAutocomplete(term);
     }
   };
@@ -54,7 +54,7 @@ const AddressLookup: React.FC<AddressLookupProps> = ({ onAddressSelected }) => {
       {isFetching && <div className="p-2">Searching...</div>}
       {suggestions && searchTerm && (
         <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md mt-1 shadow-lg dark:bg-boxdark dark:border-strokedark">
-          {suggestions.map((s) => (
+          {suggestions.suggestions.map((s) => (
             <li
               key={s.id}
               className="p-2 hover:bg-gray-100 dark:hover:bg-meta-4 cursor-pointer"

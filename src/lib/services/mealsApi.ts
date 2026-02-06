@@ -17,6 +17,10 @@ interface Meal {
   carbs: string;
   protein: string;
   calories: string;
+  doubleFat: string;
+  doubleProtein: string;
+  doubleCarbs: string;
+  doubleCalories: string;
   allergies: string | null;
   supplement: number | null;
   stripeProductId?: string | null;
