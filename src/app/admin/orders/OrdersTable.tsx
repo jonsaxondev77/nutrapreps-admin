@@ -1,7 +1,7 @@
 // src/app/admin/orders/OrdersTable.tsx
 'use client';
 
-import { useGetOrdersQuery } from '@/lib/services/ordersApi';
+import { useGetOrdersQuery, useUpdatePaymentStatusMutation } from '@/lib/services/ordersApi';
 import React, { useState } from 'react';
 import Pagination from '@/components/tables/Pagination';
 import { CheckCircle, Eye, XCircle, Download, Plus } from 'lucide-react';
@@ -14,7 +14,6 @@ import TableSkeleton from '@/components/tables/TableSkeleton';
 import ErrorAlert from '@/components/common/ErrorAlert';
 import { Dropdown } from '@/components/ui/dropdown/Dropdown';
 import { DropdownItem } from '@/components/ui/dropdown/DropdownItem';
-import AdminPlaceOrderModal from './AdminPlaceOrderModal'; // <-- IMPORT REMAINS, NAME IS NOW PLACE
 import AdminAddItemsToOrderModal from './AdminAddItemsToOrderModal';
 
 const getSundayForDate = (date: Date) => {
@@ -27,7 +26,6 @@ const getSundayForDate = (date: Date) => {
     return d;
 };
 
-
 const OrdersTable = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedDate, setSelectedDate] = useState(getSundayForDate(new Date()));
@@ -38,28 +36,29 @@ const OrdersTable = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
 
-    // STATE FOR ADMIN ORDER MODAL (PLACE ONLY)
+    // STATE FOR ADMIN ORDER MODAL
     const [isPlaceOrderModalOpen, setIsPlaceOrderModalOpen] = useState(false);
-    // REMOVED: const [orderIdToAmend, setOrderIdToAmend] = useState<number | null>(null); 
 
-    const weekStartISO = new Date(Date.UTC(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate())).toISOString();
+    const weekStartISO = new Date(
+        Date.UTC(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate())
+    ).toISOString();
 
-    const { data, error, isLoading } = useGetOrdersQuery({
+    const { data, error, isLoading, refetch } = useGetOrdersQuery({
         pageNumber: currentPage,
-        pageSize: pageSize,
+        pageSize,
         weekStart: weekStartISO,
     });
 
+    const [updatePaymentStatus, { isLoading: isUpdatingPayment }] = useUpdatePaymentStatusMutation();
 
     const handleViewDetails = (orderId: number) => {
         setSelectedOrderId(orderId);
         setIsModalOpen(true);
     };
 
-    // HANDLER FOR CLOSING ADMIN MODALS
     const handleCloseAdminModal = () => {
-        setIsPlaceOrderModalOpen(false); // Clears Place state
-    }
+        setIsPlaceOrderModalOpen(false);
+    };
 
     const handleDateChange = (date: Date) => {
         setSelectedDate(getSundayForDate(date));
@@ -72,11 +71,29 @@ const OrdersTable = () => {
     };
 
     const toggleExportDropdown = () => {
-      setIsExportDropdownOpen(prev => !prev);
+        setIsExportDropdownOpen(prev => !prev);
     };
 
     const closeExportDropdown = () => {
-      setIsExportDropdownOpen(false);
+        setIsExportDropdownOpen(false);
+    };
+
+    const handleTogglePaymentStatus = async (id: number, currentStatus: boolean) => {
+        const actionText = currentStatus ? 'mark this order as unpaid' : 'mark this order as paid';
+        const confirmed = window.confirm(`Are you sure you want to ${actionText}?`);
+        if (!confirmed) return;
+
+        try {
+            await updatePaymentStatus({
+                id,
+                status: !currentStatus,
+            }).unwrap();
+
+            refetch();
+        } catch (err) {
+            console.error('Failed to update payment status:', err);
+            window.alert('Failed to update payment status.');
+        }
     };
 
     const exportToCsv = (filteredOrders: any[], filename: string) => {
@@ -89,16 +106,14 @@ const OrdersTable = () => {
             order.email,
             order.telephone,
             order.total,
-            order.hasPayment ? 'Paid' : 'Unpaid',
+            order.status ? 'Paid' : 'Unpaid',
         ]);
 
-        const csvContent = [
-            headers.join(','),
-            ...rows.map(e => e.join(',')),
-        ].join('\n');
+        const csvContent = [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
+
         if (link.download !== undefined) {
             const url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
@@ -109,57 +124,58 @@ const OrdersTable = () => {
             document.body.removeChild(link);
         }
     };
-    
+
     const handleExportPaid = () => {
-      const paidOrders = data?.data.filter(order => order.hasPayment) || [];
-      exportToCsv(paidOrders, 'paid_orders.csv');
-      closeExportDropdown();
+        const paidOrders = data?.data.filter(order => order.hasPayment) || [];
+        exportToCsv(paidOrders, 'paid_orders.csv');
+        closeExportDropdown();
     };
 
     const handleExportUnpaid = () => {
-      const unpaidOrders = data?.data.filter(order => !order.hasPayment) || [];
-      exportToCsv(unpaidOrders, 'unpaid_orders.csv');
-      closeExportDropdown();
+        const unpaidOrders = data?.data.filter(order => !order.hasPayment) || [];
+        exportToCsv(unpaidOrders, 'unpaid_orders.csv');
+        closeExportDropdown();
     };
 
-
     if (isLoading) {
-        return <TableSkeleton columns={5} rows={10} />;
+        return <TableSkeleton columns={6} rows={10} />;
     }
 
     if (error) {
-        return <ErrorAlert error={error} title="Error loading meals" />;
+        return <ErrorAlert error={error} title="Error loading orders" />;
     }
-
 
     return (
         <>
             <PageBreadcrumb pageTitle="Orders" />
-            
+
             <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-end sm:space-x-2 mb-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
-                
-                <Button 
-                    size="sm" 
-                    variant="primary" 
-                    startIcon={<Plus size={16} />} 
+                <Button
+                    size="sm"
+                    variant="primary"
+                    startIcon={<Plus size={16} />}
                     onClick={() => setIsPlaceOrderModalOpen(true)}
-                    className="mb-2 sm:mb-0" 
+                    className="mb-2 sm:mb-0"
                 >
                     Admin Place Order
                 </Button>
 
                 <div className="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
                     <div className="relative">
-                        <Button 
-                            size="sm" 
-                            variant="primary" 
-                            startIcon={<Download size={16} />} 
+                        <Button
+                            size="sm"
+                            variant="primary"
+                            startIcon={<Download size={16} />}
                             onClick={toggleExportDropdown}
-                            className='dropdown-toggle'
+                            className="dropdown-toggle"
                         >
                             Export
                         </Button>
-                        <Dropdown isOpen={isExportDropdownOpen} onClose={closeExportDropdown} className="w-40 mt-1">
+                        <Dropdown
+                            isOpen={isExportDropdownOpen}
+                            onClose={closeExportDropdown}
+                            className="w-40 mt-1"
+                        >
                             <DropdownItem onClick={handleExportPaid}>
                                 Export Paid
                             </DropdownItem>
@@ -204,6 +220,7 @@ const OrdersTable = () => {
                     </div>
                 </div>
             </div>
+
             <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
                 <div className="max-w-full overflow-x-auto">
                     <div className="min-w-[1102px]">
@@ -248,23 +265,30 @@ const OrdersTable = () => {
                                     </TableCell>
                                 </TableRow>
                             </TableHeader>
+
                             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                                {data?.data.map((order) => (
+                                {data?.data.map(order => (
                                     <TableRow key={order.id}>
                                         <TableCell className="w-24 px-5 py-4 text-gray-800 text-start dark:text-white/90">
                                             {order.id}
                                         </TableCell>
+
                                         <TableCell className="w-48 px-4 py-3 text-gray-500 text-start dark:text-gray-400">
-                                            {order.name}<br />
-                                            {order.email}<br/>
+                                            {order.name}
+                                            <br />
+                                            {order.email}
+                                            <br />
                                             {order.telephone}
                                         </TableCell>
+
                                         <TableCell className="w-32 px-4 py-3 text-gray-500 text-start dark:text-gray-400">
                                             {order.orderDate}
                                         </TableCell>
+
                                         <TableCell className="w-32 px-4 py-3 text-gray-500 text-start dark:text-gray-400">
                                             {order.total}
                                         </TableCell>
+
                                         <TableCell className="w-40 px-4 py-3 text-start">
                                             {order.hasPayment === true ? (
                                                 <CheckCircle size={20} className="text-green-500" />
@@ -272,10 +296,28 @@ const OrdersTable = () => {
                                                 <XCircle size={20} className="text-red-500" />
                                             )}
                                         </TableCell>
-                                        <TableCell className="w-28 px-5 py-4 text-start">
-                                            <Button variant="primary" size="sm" onClick={() => handleViewDetails(order.id)}>
-                                                <Eye size={16} />
-                                            </Button>
+
+                                        <TableCell className="w-40 px-5 py-4 text-start">
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    variant="primary"
+                                                    size="sm"
+                                                    onClick={() => handleViewDetails(order.id)}
+                                                    disabled={isUpdatingPayment}
+                                                >
+                                                    <Eye size={16} />
+                                                </Button>
+
+                                                <Button
+                                                    variant="primary"
+                                                    size="sm"
+                                                    onClick={() => handleTogglePaymentStatus(order.id, order.hasPayment)}
+                                                    disabled={isUpdatingPayment}
+                                                    title={order.hasPayment ? 'Mark as unpaid' : 'Mark as paid'}
+                                                >
+                                                    {order.hasPayment ? <XCircle size={16} /> : <CheckCircle size={16} />}
+                                                </Button>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -284,6 +326,7 @@ const OrdersTable = () => {
                     </div>
                 </div>
             </div>
+
             <div className="flex justify-center mt-4">
                 {data && (
                     <Pagination
@@ -293,8 +336,7 @@ const OrdersTable = () => {
                     />
                 )}
             </div>
-            
-            {/* 1. Order Details Modal */}
+
             {isModalOpen && selectedOrderId !== null && (
                 <OrderDetailsModal
                     isOpen={isModalOpen}
@@ -303,11 +345,10 @@ const OrdersTable = () => {
                 />
             )}
 
-            {/* 2. Admin Place Order Modal */}
             {isPlaceOrderModalOpen && (
                 <AdminAddItemsToOrderModal
                     isOpen={isPlaceOrderModalOpen}
-                    onClose={handleCloseAdminModal} 
+                    onClose={handleCloseAdminModal}
                 />
             )}
         </>

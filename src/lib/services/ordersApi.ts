@@ -12,40 +12,52 @@ export const ordersApi = createApi({
       providesTags: ["Orders"],
     }),
     getOrderById: builder.query<DetailedOrderResponse, number>({
-        query: (id) => `order/details/${id}`,
-        providesTags: (result, error, id) => [{ type: 'Orders', id }],
+      query: (id) => `order/details/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Orders', id }],
     }),
 
     getAvailableMeals: builder.query<MealOption[], void>({
-        query: () => 'order/meals',
+      query: () => 'order/meals',
     }),
 
     getAvailableAddons: builder.query<MealOption[], void>({
-        query: () => 'order/addons',
+      query: () => 'order/addons',
     }),
 
     getAvailableExtras: builder.query<Extra[], void>({
-        query: () => 'order/extras',
+      query: () => 'order/extras',
     }),
 
     // NEW: Mutation for Admin Place Order
     adminPlaceOrder: builder.mutation<PlaceOrderResponse, AdminPlaceOrderRequest>({
-        query: (orderData) => ({
-            url: 'order/admin-place',
-            method: 'POST',
-            body: orderData,
-        }),
-        invalidatesTags: ["Orders"], // Invalidate all orders to refresh list
-    })
+      query: (orderData) => ({
+        url: 'order/admin-place',
+        method: 'POST',
+        body: orderData,
+      }),
+      invalidatesTags: ["Orders"], // Invalidate all orders to refresh list
+    }),
+    updatePaymentStatus: builder.mutation<
+      { message: string },
+      { id: number; status: boolean }
+    >({
+      query: (body) => ({
+        url: '/order/paymentstatus',
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['Orders'],
+    }),
   }),
 });
 
 // Update hook exports
-export const { 
+export const {
   useGetOrdersQuery,
   useGetOrderByIdQuery,
   useGetAvailableExtrasQuery,
   useGetAvailableAddonsQuery,
   useGetAvailableMealsQuery,
-  useAdminPlaceOrderMutation
+  useAdminPlaceOrderMutation,
+  useUpdatePaymentStatusMutation
 } = ordersApi;
