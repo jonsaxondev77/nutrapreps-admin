@@ -108,6 +108,13 @@ const AdminPlaceOrderModal: React.FC<AdminPlaceOrderModalProps> = ({ isOpen, onC
         return acc;
     }, {} as Record<number, any>) ?? {}, [extrasData]);
 
+    const formatDateOnly = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     // --- Form Handlers ---
     const handleAddPlan = (e: React.MouseEvent) => {
         e.preventDefault(); 
@@ -299,7 +306,7 @@ const AdminPlaceOrderModal: React.FC<AdminPlaceOrderModalProps> = ({ isOpen, onC
         try {
              const request: AdminPlaceOrderRequest = {
                 accountId: formState.accountId!,
-                weekstart: formState.weekstart.toISOString(),
+                weekstart: formatDateOnly(formState.weekstart),
                 hasPayment: formState.hasPayment,
                 orderItems,
                 extras,
